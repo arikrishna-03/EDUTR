@@ -7,34 +7,48 @@ import autoTable from 'jspdf-autotable';
 const Attendance = () => {
     const [students, setStudents] = useState([]);
     const [attendanceStatus, setAttendanceStatus] = useState({});
-    const [currentDate] = useState(new Date().toISOString().split('T')[0]);
+    const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
     const [searchTerm, setSearchTerm] = useState('');
 
     // Mock Mentor ID (consistency with Students.jsx)
     const currentMentorId = 'MENTOR123';
 
+    // 1. Load students on mount
     useEffect(() => {
-        const loadStudents = () => {
-            const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-            const myStudents = allStudents.filter(s => s.mentorId === currentMentorId);
+        const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+        const myStudents = allStudents.filter(s => s.mentorId === currentMentorId);
 
-            // Enrich with Mock Register No if missing
-            const studentsWithReg = myStudents.map((s, index) => ({
-                ...s,
-                regNo: s.regNo || `REG${2024000 + index + 1}` // Mock Reg No generation
-            }));
-
-            setStudents(studentsWithReg);
-
-            // Initialize all as Present (true) by default or load existing for today if logic existed
-            const initialStatus = {};
-            studentsWithReg.forEach(s => {
-                initialStatus[s.id] = true; // Default Present
-            });
-            setAttendanceStatus(initialStatus);
-        };
-        loadStudents();
+        const studentsWithReg = myStudents.map((s, index) => ({
+            ...s,
+            regNo: s.regNo || `REG${2024000 + index + 1}`
+        }));
+        setStudents(studentsWithReg);
     }, []);
+
+    // 2. Load attendance status for the selected date
+    useEffect(() => {
+        if (students.length === 0) return;
+
+        const history = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
+        const existingRecord = history.find(h => h.date === currentDate && h.mentorId === currentMentorId);
+
+        const initialStatus = {};
+        if (existingRecord) {
+            existingRecord.records.forEach(r => {
+                initialStatus[r.studentId] = r.status === 'Present';
+            });
+            students.forEach(s => {
+                if (initialStatus[s.id] === undefined) {
+                    initialStatus[s.id] = true;
+                }
+            });
+        } else {
+            students.forEach(s => {
+                initialStatus[s.id] = true;
+            });
+        }
+        setAttendanceStatus(initialStatus);
+    }, [currentDate, students]);
 
     const handleToggle = (studentId) => {
         setAttendanceStatus(prev => ({
@@ -54,11 +68,17 @@ const Attendance = () => {
             }))
         };
 
-        // Save to local storage (Mock Backend)
+        // Save to local storage (Mock Backend) - prevent duplicates for same date
         const existingHistory = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
-        existingHistory.push(record);
-        localStorage.setItem('attendanceHistory', JSON.stringify(existingHistory));
+        const existingIndex = existingHistory.findIndex(h => h.date === currentDate && h.mentorId === currentMentorId);
 
+        if (existingIndex > -1) {
+            existingHistory[existingIndex] = record;
+        } else {
+            existingHistory.push(record);
+        }
+
+        localStorage.setItem('attendanceHistory', JSON.stringify(existingHistory));
         alert('Attendance submitted successfully!');
     };
 
@@ -136,7 +156,13 @@ const Attendance = () => {
                 <div className="flex items-center gap-4 w-full md:w-auto">
                     <div className="flex items-center gap-2 bg-[#13151b] px-4 py-2 rounded-xl border border-white/10 text-slate-300">
                         <Calendar size={18} />
-                        <span className="font-mono">{currentDate}</span>
+                        <input
+                            type="date"
+                            value={currentDate}
+                            onChange={(e) => setCurrentDate(e.target.value)}
+                            style={{ colorScheme: 'dark' }}
+                            className="bg-transparent border-none text-slate-300 font-mono text-sm focus:outline-none cursor-pointer"
+                        />
                     </div>
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
