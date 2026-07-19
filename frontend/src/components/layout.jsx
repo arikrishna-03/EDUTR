@@ -8,7 +8,6 @@ import {
   Code2,
   UserCircle,
   Settings,
-  LogOut,
 } from 'lucide-react';
 
 const Layout = () => {
@@ -102,17 +101,7 @@ const Layout = () => {
               </span>
             </NavLink>
           ))}
-          <button
-            onClick={() => {
-              localStorage.removeItem('currentUser');
-              navigate('/login');
-            }}
-            className="w-full mt-2 flex items-center px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
-            <LogOut size={22} className="min-w-[22px]" />
-            <span className="ml-4 font-medium whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 delay-75">
-              Logout
-            </span>
-          </button>
+
         </div>
       </aside>
 

@@ -27,48 +27,26 @@ EduTrack is a comprehensive web-based application designed to streamline the tra
 
 Follow these steps to get the project running locally on your machine.
 
-### Prerequisites
-*   Node.js (v14 or higher)
-*   npm or yarn
-*   MongoDB (local or Atlas connection string)
+### Quick Start (Recommended)
 
-### Backend Setup
+To install dependencies and start the local database, backend server, and frontend server all at once, run the following commands in the root directory:
 
-1.  Navigate to the backend directory:
-    ```bash
-    cd backend
-    ```
-
-2.  Install dependencies:
+1.  **Install all dependencies**:
     ```bash
     npm install
+    cd backend && npm install
+    cd ../frontend && npm install
+    cd ..
     ```
 
-3.  Start the backend server:
+2.  **Start all services**:
     ```bash
-    npm run dev
+    npm start
     ```
-    The server typically runs on `http://localhost:5000` (or the port defined in your `.env` file).
-
-    *Note: Ensure you have a `.env` file in the `backend` directory with necessary variables like `MONGO_URI`, `PORT`, `JWT_SECRET`, etc.*
-
-### Frontend Setup
-
-1.  Navigate to the frontend directory:
-    ```bash
-    cd frontend
-    ```
-
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-
-3.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-    The application will be accessible at `http://localhost:5173`.
+    This single command will:
+    *   Start a local persistent MongoDB instance on port `27017` (saved under `backend/db_data/`).
+    *   Start the backend server on `http://localhost:5000`.
+    *   Start the frontend application on `http://localhost:5173`.
 
 ## Environment Variables
 
@@ -76,7 +54,7 @@ Create a `.env` file in the `backend` folder with the following keys (example):
 
 ```env
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
+MONGO_URI=mongodb://127.0.0.1:27017/edu_tracker
 JWT_SECRET=your_jwt_secret_key
 ```
 

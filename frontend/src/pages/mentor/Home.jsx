@@ -45,6 +45,43 @@ const Home = () => {
         }
     }, []);
 
+    const [stats, setStats] = useState({
+        totalStudents: 0,
+        presentToday: 0,
+        absentToday: 0
+    });
+
+    useEffect(() => {
+        const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+        const myStudents = allStudents.filter(s => s.mentorId === mentorId);
+        
+        const todayStr = new Date().toISOString().split('T')[0];
+        const history = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
+        
+        // Find today's record for this mentor
+        const todayRecord = history.find(h => h.date === todayStr && h.mentorId === mentorId);
+        
+        let present = 0;
+        let absent = 0;
+        
+        if (todayRecord) {
+            todayRecord.records.forEach(r => {
+                if (r.status === 'Present') present++;
+                else if (r.status === 'Absent') absent++;
+            });
+        } else {
+            // If no record submitted yet for today, default all to Present
+            present = myStudents.length;
+            absent = 0;
+        }
+        
+        setStats({
+            totalStudents: myStudents.length,
+            presentToday: present,
+            absentToday: absent
+        });
+    }, [mentorId]);
+
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
@@ -104,15 +141,15 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-[#13151b] p-6 rounded-xl border border-white/5 shadow-sm">
                     <h3 className="text-slate-500 text-sm font-medium mb-2">Total Students</h3>
-                    <p className="text-3xl font-bold">42</p>
+                    <p className="text-3xl font-bold">{stats.totalStudents}</p>
                 </div>
                 <div className="bg-[#13151b] p-6 rounded-xl border border-white/5 shadow-sm">
                     <h3 className="text-slate-500 text-sm font-medium mb-2">Present Today</h3>
-                    <p className="text-3xl font-bold">38</p>
+                    <p className="text-3xl font-bold">{stats.presentToday}</p>
                 </div>
                 <div className="bg-[#13151b] p-6 rounded-xl border border-white/5 shadow-sm">
                     <h3 className="text-slate-500 text-sm font-medium mb-2">Absent Today</h3>
-                    <p className="text-3xl font-bold">4</p>
+                    <p className="text-3xl font-bold">{stats.absentToday}</p>
                 </div>
             </div>
 

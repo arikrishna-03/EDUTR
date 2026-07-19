@@ -1,0 +1,14 @@
+{
+  "name": "edutr-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db": "cd backend && node start-db.js",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm run dev",
+    "start": "concurrently \"npm run db\" \"npm run backend\" \"npm run frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

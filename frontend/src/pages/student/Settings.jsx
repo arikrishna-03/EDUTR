@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Settings as SettingsIcon, Shield, Bell, Key, Globe,
-    Moon, Smartphone, Mail, LayoutGrid
+    Moon, Smartphone, Mail, LayoutGrid, LogOut
 } from 'lucide-react';
 import DashboardHeader from '../../components/DashboardHeader';
 import { PlatformSettingsPanel } from '../StudentPlatformSettings';
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState('general');
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.removeItem('currentUser');
+        navigate('/login');
+    };
 
     const menuItems = [
         { id: 'general', label: 'General', icon: SettingsIcon },
@@ -38,6 +45,14 @@ const Settings = () => {
                                     {item.label}
                                 </button>
                             ))}
+                            <hr className="border-white/5 my-2" />
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                            >
+                                <LogOut size={18} />
+                                Logout
+                            </button>
                         </div>
                     </div>
                 </div>
