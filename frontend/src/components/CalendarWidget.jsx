@@ -103,11 +103,11 @@ const CalendarWidget = ({ mentorId, isEditable = false }) => {
     });
 
     const daysInWeek = eachDayOfInterval({
-        start: startOfWeek(currentDate, { weekStartsOn: 0 }), // Sunday start
-        end: endOfWeek(currentDate, { weekStartsOn: 0 })
+        start: startOfWeek(currentDate, { weekStartsOn: 1 }), // Monday start
+        end: endOfWeek(currentDate, { weekStartsOn: 1 })
     });
 
-    const weekDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekDayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     const handleCalendarUpload = async (e) => {
         if (!isEditable) return; // Guard clause
@@ -201,13 +201,26 @@ const CalendarWidget = ({ mentorId, isEditable = false }) => {
                 {calendarView === 'monthly' ? (
                     <div className="animate-in fade-in duration-300">
                         <div className="grid grid-cols-7 gap-2">
+                            {/* Weekday Headers */}
+                            {weekDayNames.map((name, idx) => (
+                                <div key={`header-${idx}`} className="text-center text-xs font-semibold text-slate-400 py-2 border-b border-white/5 mb-1">
+                                    {name}
+                                </div>
+                            ))}
+
+                            {/* Padding days for the start of the month */}
+                            {Array.from({ length: (startOfMonth(currentDate).getDay() + 6) % 7 }).map((_, idx) => (
+                                <div key={`pad-${idx}`} className="min-h-[6rem] h-auto rounded-lg p-2 border border-transparent bg-transparent" />
+                            ))}
+
+                            {/* Actual days in the month */}
                             {daysInMonth.map((day, i) => {
                                 const isToday = isSameDay(day, new Date());
                                 return (
                                     <div key={i} className={`min-h-[6rem] h-auto rounded-lg p-2 border border-white/5 bg-[#1a1c23] ${isToday ? 'bg-indigo-500/10 border-indigo-500/50' : ''}`}>
                                         <div className="flex justify-between items-start mb-1">
                                             <span className={`text-xs font-medium ${isToday ? 'text-indigo-400' : 'text-slate-500'}`}>
-                                                {format(day, 'd-EEE')}
+                                                {format(day, 'd')}
                                             </span>
                                         </div>
                                         <div className="space-y-1">

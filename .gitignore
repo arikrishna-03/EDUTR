@@ -2,3 +2,4 @@ node_modules/
 dist/
 .env
 backend/db_data/
+frontend/eng.traineddata

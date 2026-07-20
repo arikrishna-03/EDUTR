@@ -132,6 +132,24 @@ const TimetableWidget = ({ mentorId, isEditable = false }) => {
                                 const startTime = timeParts[0];
                                 const endTime = timeParts[1];
 
+                                if (slot.isBreak) {
+                                    return (
+                                        <div key={idx} className="flex gap-3 group items-center py-1">
+                                            {/* Time Column */}
+                                            <div className="flex flex-col items-end w-16 flex-shrink-0">
+                                                <span className="text-slate-400 font-medium text-xs leading-tight">{startTime}</span>
+                                                <span className="text-slate-600 text-[9px] mt-0.5">{endTime}</span>
+                                            </div>
+
+                                            {/* Break Bar */}
+                                            <div className="flex-1 bg-white/[0.01] border border-dashed border-white/10 rounded-lg p-2.5 flex items-center justify-between">
+                                                <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{slot.subject}</span>
+                                                <span className="text-slate-500 text-[10px] italic">Rest Period</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
                                 // Cycle accent colors
                                 const colors = ['border-emerald-500', 'border-pink-500', 'border-indigo-500', 'border-cyan-500', 'border-orange-500'];
                                 const accentColor = colors[idx % colors.length];
@@ -146,21 +164,17 @@ const TimetableWidget = ({ mentorId, isEditable = false }) => {
 
                                         {/* Card */}
                                         <div className={`flex-1 relative bg-[#1a1c23] hover:bg-[#20222b] transition-colors rounded-r-lg p-3 border-l-[3px] ${accentColor} shadow-sm group-hover:shadow-md`}>
-                                            {/* Optional Tag or Icon could go here */}
-                                            {idx === 2 && <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-emerald-500"></div>} {/* Mock active indicator */}
-
                                             <h4 className="font-semibold text-white text-[15px]">{slot.subject}</h4>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-slate-500 text-xs font-medium">Class</span>
                                                 <span className="text-slate-600 text-[10px]">•</span>
                                                 <span className="text-slate-400 text-xs flex items-center gap-1">
-                                                    Room A-10{idx + 1}
+                                                    Room A-10{slot.period || idx + 1}
                                                 </span>
                                             </div>
-                                            {/* Optional Teacher Name Mock */}
                                             <div className="mt-2 flex items-center gap-1.5">
                                                 <div className="w-4 h-4 rounded-full bg-slate-700 flex items-center justify-center text-[8px] text-white">T</div>
-                                                <span className="text-xs text-slate-400">Instructor {idx + 1}</span>
+                                                <span className="text-xs text-slate-400">{slot.instructor || `Instructor ${idx + 1}`}</span>
                                             </div>
                                         </div>
                                     </div>
