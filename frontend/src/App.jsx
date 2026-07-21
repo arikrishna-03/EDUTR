@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Layout from './components/Layout';
+import Layout from './components/layout';
 import MentorHome from './pages/mentor/Home';
 import MentorProfile from './pages/mentor/Profile';
 import MentorSettings from './pages/mentor/Settings';
