@@ -40,16 +40,22 @@ const Profile = () => {
     const [formData, setFormData] = useState(DEFAULT_PROFILE);
 
     useEffect(() => {
+        const savedProfile = localStorage.getItem('mentorProfile');
+        if (savedProfile) {
+            setFormData(JSON.parse(savedProfile));
+            return;
+        }
+
         const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const mentorId = user.id || user.mentorId; // Handle both direct mentor login and maybe student view if applicable
+        const mentorId = user.id || user.mentorId;
 
         if (mentorId && MENTOR_PROFILES[mentorId]) {
             setFormData(MENTOR_PROFILES[mentorId]);
         } else if (user.role === 'mentor' && user.id) {
-            // Fallback for new mentors not in DB, preserve basic info if available
             setFormData(prev => ({
                 ...prev,
                 fullName: user.name || prev.fullName,
+                email: user.email || prev.email,
                 mentorId: user.id
             }));
         }
@@ -58,6 +64,19 @@ const Profile = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSave = () => {
+        localStorage.setItem('mentorProfile', JSON.stringify(formData));
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (currentUser.role === 'mentor') {
+            localStorage.setItem('currentUser', JSON.stringify({
+                ...currentUser,
+                name: formData.fullName,
+                email: formData.email
+            }));
+        }
+        setIsEditing(false);
     };
 
     return (
@@ -112,7 +131,7 @@ const Profile = () => {
                                             <X size={16} /> Cancel
                                         </button>
                                         <button
-                                            onClick={() => setIsEditing(false)}
+                                            onClick={handleSave}
                                             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
                                         >
                                             <Save size={16} /> Save Changes

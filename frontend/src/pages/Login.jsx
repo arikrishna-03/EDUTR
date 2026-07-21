@@ -42,7 +42,7 @@ const Login = () => {
               email: email || 'sarah.wilson@edutrack.edu',
             })
           );
-          navigate('/mentor/home');
+          navigate('/mentor/profile');
         } else {
           if (mentorId.trim()) {
             const existingStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
@@ -111,7 +111,7 @@ const Login = () => {
               photoURL: res.user.photoURL,
             })
           );
-          navigate('/mentor/home');
+          navigate('/mentor/profile');
         } else {
           // Student role requires Mentor ID linking
           setPendingGoogleUser(res.user.email);

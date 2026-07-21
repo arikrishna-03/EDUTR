@@ -151,71 +151,7 @@ const Home = () => {
                 {/* Main Content Areas (2 cols) */}
                 <div className="lg:col-span-2 space-y-6">
 
-                    {/* Attendance Trends Chart */}
-                    <div className="bg-[#13151b] p-6 rounded-xl border border-white/5 shadow-sm">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-semibold text-lg">Attendance Trends (7 days)</h3>
-                            {/* List / Bar Toggle */}
-                            <div className="flex items-center gap-4 text-sm">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="chartType"
-                                        className="accent-cyan-400"
-                                        checked={chartType === 'line'}
-                                        onChange={() => setChartType('line')}
-                                    />
-                                    <span className={chartType === 'line' ? 'text-white' : 'text-slate-400'}>Line</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="chartType"
-                                        className="accent-cyan-400"
-                                        checked={chartType === 'bar'}
-                                        onChange={() => setChartType('bar')}
-                                    />
-                                    <span className={chartType === 'bar' ? 'text-white' : 'text-slate-400'}>Bar</span>
-                                </label>
-                            </div>
-                        </div>
 
-                        <div className="h-72 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                {chartType === 'line' ? (
-                                    <AreaChart data={attendanceData}>
-                                        <defs>
-                                            <linearGradient id="colorCyan" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.1} />
-                                                <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1f2937" />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '8px' }}
-                                            itemStyle={{ color: '#fff' }}
-                                        />
-                                        <Area type="monotone" dataKey="present" stroke="#22d3ee" strokeWidth={3} fillOpacity={1} fill="url(#colorCyan)" />
-                                    </AreaChart>
-                                ) : (
-                                    <BarChart data={attendanceData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1f2937" />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                                        <Tooltip
-                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                            contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '8px' }}
-                                            itemStyle={{ color: '#fff' }}
-                                        />
-                                        <Bar dataKey="present" fill="#22d3ee" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                )}
-                            </ResponsiveContainer>
-                            <div className="text-center text-xs text-slate-500 mt-2 font-mono">Attendance (Last 7 days)</div>
-                        </div>
-                    </div>
 
                     {/* Calendar Widget */}
                     <CalendarWidget isEditable={true} mentorId={mentorId} />
