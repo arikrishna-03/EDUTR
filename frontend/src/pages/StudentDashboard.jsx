@@ -6,17 +6,13 @@ import {
   Twitter,
   Globe,
   BookOpen,
-  Share2,
   Info,
   Check,
-  ExternalLink
+  RefreshCw
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   AreaChart,
@@ -30,33 +26,34 @@ export default function StudentDashboard() {
   const [studentData, setStudentData] = useState(null);
   const [selectedPlatform, setSelectedPlatform] = useState('Total');
   const [selectedContestPlatform, setSelectedContestPlatform] = useState('LeetCode');
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Platform Specific Mock Data
+  // Platform Specific Statistics
   const platformStats = {
     'Total': {
-      questions: 916,
-      activeDays: 120,
+      questions: 1120,
+      activeDays: 145,
       streak: 66,
-      submissions: 1671,
-      easy: 540,
-      medium: 312,
-      hard: 64,
+      submissions: 1890,
+      easy: 640,
+      medium: 390,
+      hard: 90,
       awards: 6
     },
     'LeetCode': {
-      questions: 450,
-      activeDays: 85,
+      questions: 480,
+      activeDays: 95,
       streak: 45,
-      submissions: 820,
-      easy: 210,
-      medium: 180,
-      hard: 60,
+      submissions: 890,
+      easy: 220,
+      medium: 195,
+      hard: 65,
       awards: 4
     },
     'CodeChef': {
       questions: 320,
-      activeDays: 20,
-      streak: 12,
+      activeDays: 30,
+      streak: 14,
       submissions: 540,
       easy: 240,
       medium: 75,
@@ -64,50 +61,56 @@ export default function StudentDashboard() {
       awards: 2
     },
     'CodeForces': {
-      questions: 110,
-      activeDays: 10,
-      streak: 5,
-      submissions: 210,
+      questions: 140,
+      activeDays: 15,
+      streak: 8,
+      submissions: 260,
+      easy: 90,
+      medium: 40,
+      hard: 10,
+      awards: 1
+    },
+    'GeeksforGeeks': {
+      questions: 145,
+      activeDays: 20,
+      streak: 10,
+      submissions: 170,
       easy: 80,
-      medium: 25,
-      hard: 5,
-      awards: 0
+      medium: 55,
+      hard: 10,
+      awards: 1
     },
     'CodeStudio': {
-      questions: 36,
+      questions: 35,
       activeDays: 5,
       streak: 4,
-      submissions: 101,
+      submissions: 80,
       easy: 10,
-      medium: 26,
+      medium: 25,
       hard: 0,
       awards: 0
     }
   };
 
-  // Mock Rating Data per Platform
+  // Platform Rating & Contest History
   const platformRatingData = {
     'LeetCode': {
-      rating: 1547,
+      rating: 1650,
       lastContest: 'Weekly Contest 476',
       date: '16 Nov 2025',
-      rank: 7019,
+      rank: 5210,
       data: [
         { date: 'Oct 25', rating: 1470 },
         { date: 'Nov 01', rating: 1490 },
         { date: 'Nov 08', rating: 1520 },
-        { date: 'Nov 15', rating: 1510 },
-        { date: 'Nov 22', rating: 1545 },
-        { date: 'Nov 29', rating: 1555 },
-        { date: 'Dec 06', rating: 1530 },
-        { date: 'Dec 13', rating: 1500 },
-        { date: 'Dec 20', rating: 1485 },
-        { date: 'Dec 27', rating: 1450 },
+        { date: 'Nov 15', rating: 1560 },
+        { date: 'Nov 22', rating: 1610 },
+        { date: 'Nov 29', rating: 1650 },
       ]
     },
     'CodeChef': {
       rating: 1840,
-      lastContest: 'Starters 121',
+      lastContest: 'Starters 121 (3★)',
       date: '12 Feb 2026',
       rank: 1205,
       data: [
@@ -121,7 +124,7 @@ export default function StudentDashboard() {
     },
     'CodeForces': {
       rating: 1420,
-      lastContest: 'Round 932 (Div. 2)',
+      lastContest: 'Round 932 (Div. 2 Specialist)',
       date: '20 Jan 2026',
       rank: 4500,
       data: [
@@ -129,6 +132,18 @@ export default function StudentDashboard() {
         { date: 'Dec 15', rating: 1380 },
         { date: 'Jan 05', rating: 1410 },
         { date: 'Jan 20', rating: 1420 },
+      ]
+    },
+    'GeeksforGeeks': {
+      rating: 1510,
+      lastContest: 'Weekly Contest 110',
+      date: '10 Feb 2026',
+      rank: 2100,
+      data: [
+        { date: 'Jan 01', rating: 1400 },
+        { date: 'Jan 15', rating: 1450 },
+        { date: 'Feb 01', rating: 1490 },
+        { date: 'Feb 10', rating: 1510 },
       ]
     },
     'CodeStudio': {
@@ -147,26 +162,13 @@ export default function StudentDashboard() {
   const currentStats = platformStats[selectedPlatform] || platformStats['Total'];
   const currentRating = platformRatingData[selectedContestPlatform] || platformRatingData['LeetCode'];
 
-  // Mock Rating Data
-  const ratingData = [
-    { date: 'Oct 25', rating: 1470 },
-    { date: 'Nov 01', rating: 1490 },
-    { date: 'Nov 08', rating: 1520 },
-    { date: 'Nov 15', rating: 1510 },
-    { date: 'Nov 22', rating: 1545 },
-    { date: 'Nov 29', rating: 1555 },
-    { date: 'Dec 06', rating: 1530 },
-    { date: 'Dec 13', rating: 1500 },
-    { date: 'Dec 20', rating: 1485 },
-    { date: 'Dec 27', rating: 1450 },
-  ];
-
-  // Mock Contests
+  // Contests Breakdown
   const platformContests = [
-    { name: 'LeetCode', count: 7, color: '#FFA116' },
+    { name: 'LeetCode', count: 12, color: '#FFA116' },
     { name: 'CodeChef', count: 23, color: '#5B4638' },
-    { name: 'CodeForces', count: 3, color: '#1F8ACB' },
-    { name: 'CodeStudio', count: 1, color: '#FF6F00' },
+    { name: 'CodeForces', count: 8, color: '#1F8ACB' },
+    { name: 'GeeksforGeeks', count: 5, color: '#2F9E44' },
+    { name: 'CodeStudio', count: 2, color: '#FF6F00' },
   ];
 
   useEffect(() => {
@@ -199,30 +201,36 @@ export default function StudentDashboard() {
     handle: "@im_ari.ak03",
     avatar: "A",
     location: "India",
-    college: "Kalaignar Karunanidhi Institut...",
+    college: "Kalaignar Karunanidhi Institute of Tech",
   };
 
   const heatmapData = React.useMemo(() => {
-    const weeks = 20;
+    const weeks = 22;
     const days = 7;
     const grid = [];
     for (let i = 0; i < weeks; i++) {
       const week = [];
       for (let j = 0; j < days; j++) {
-        // Seed random based on platform name to keep it stable
-        const seed = (selectedPlatform.length + i + j) % 10;
-        week.push(seed > 7 ? Math.floor(Math.random() * 4) : 0);
+        const seed = (selectedPlatform.length + i * 3 + j * 7) % 11;
+        week.push(seed > 5 ? Math.floor(Math.random() * 4) + 1 : 0);
       }
       grid.push(week);
     }
     return grid;
   }, [selectedPlatform]);
 
+  const handleSyncData = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+    }, 1200);
+  };
+
   return (
-    <div className="min-h-screen bg-[#0B0C10] text-[#E0E0E0] font-sans p-6 flex gap-6 relative">
+    <div className="min-h-screen bg-[#0B0C10] text-[#E0E0E0] font-sans p-6 flex flex-col md:flex-row gap-6 relative">
 
       {/* --- Left Column: Profile Sidebar --- */}
-      <div className="w-72 flex flex-col gap-6 shrink-0">
+      <div className="w-full md:w-72 flex flex-col gap-6 shrink-0">
 
         {/* Profile Card */}
         <div className="bg-[#15161B] rounded-xl p-6 flex flex-col items-center border border-white/5 relative">
@@ -238,8 +246,13 @@ export default function StudentDashboard() {
             {profile.handle} <Check size={14} className="text-blue-400 fill-blue-400/20" />
           </p>
 
-          <button className="w-full py-2 bg-[#E67700]/10 text-[#E67700] border border-[#E67700]/30 rounded-lg text-xs font-bold mb-6 hover:bg-[#E67700]/20 transition-colors">
-            Get your Codolio Card
+          <button
+            onClick={handleSyncData}
+            disabled={isSyncing}
+            className="w-full py-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-xs font-bold mb-6 hover:bg-indigo-600/30 transition-colors flex items-center justify-center gap-2"
+          >
+            <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
+            {isSyncing ? "Syncing Stats..." : "Sync Platform Data"}
           </button>
 
           <div className="w-full space-y-3 text-sm text-slate-400 border-t border-white/5 pt-4 mb-6">
@@ -259,48 +272,31 @@ export default function StudentDashboard() {
             <BookOpen size={18} className="hover:text-white cursor-pointer" />
           </div>
 
-          {/* Problem Solving Stats */}
-          <div className="w-full mb-6">
+          {/* Problem Solving Stats List */}
+          <div className="w-full mb-4">
             <div className="py-2.5 px-3 bg-white/5 rounded-t-lg border border-white/5 text-sm font-medium text-slate-300 flex justify-between items-center">
               Problem Solving Stats
             </div>
             <div className="bg-white/5 border-x border-b border-white/5 rounded-b-lg p-2 space-y-1">
-              <div
-                onClick={() => setSelectedPlatform('Total')}
-                className={`flex items-center justify-between p-2 rounded cursor-pointer group transition-colors ${selectedPlatform === 'Total' ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'}`}
-              >
-                <span className={`text-sm ${selectedPlatform === 'Total' ? 'text-white font-bold' : 'text-slate-300'}`}>Total Stats</span>
-                {selectedPlatform === 'Total' && <Check size={14} className="text-blue-500" />}
-              </div>
-              {verifiedPlatforms.length === 0 ? (
-                <>
-                  <div
-                    onClick={() => setSelectedPlatform('LeetCode')}
-                    className={`flex items-center justify-between p-2 rounded cursor-pointer group transition-colors ${selectedPlatform === 'LeetCode' ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'}`}
-                  >
-                    <span className={`text-sm ${selectedPlatform === 'LeetCode' ? 'text-white font-bold' : 'text-slate-300'}`}>LeetCode</span>
-                    <Check size={14} className="text-green-500" />
-                  </div>
-                  <div
-                    onClick={() => setSelectedPlatform('CodeChef')}
-                    className={`flex items-center justify-between p-2 rounded cursor-pointer group transition-colors ${selectedPlatform === 'CodeChef' ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'}`}
-                  >
-                    <span className={`text-sm ${selectedPlatform === 'CodeChef' ? 'text-white font-bold' : 'text-slate-300'}`}>CodeChef</span>
-                    <Check size={14} className="text-green-500" />
-                  </div>
-                </>
-              ) : (
-                verifiedPlatforms.map((p) => (
-                  <div
-                    key={p.name}
-                    onClick={() => setSelectedPlatform(p.name)}
-                    className={`flex items-center justify-between p-2 rounded cursor-pointer group transition-colors ${selectedPlatform === p.name ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'}`}
-                  >
-                    <span className={`text-sm ${selectedPlatform === p.name ? 'text-white font-bold' : 'text-slate-300'}`}>{p.name}</span>
-                    <Check size={14} className="text-green-500" />
-                  </div>
-                ))
-              )}
+              {['Total', 'LeetCode', 'CodeChef', 'CodeForces', 'GeeksforGeeks', 'CodeStudio'].map((pName) => (
+                <div
+                  key={pName}
+                  onClick={() => {
+                    setSelectedPlatform(pName);
+                    if (platformRatingData[pName]) {
+                      setSelectedContestPlatform(pName);
+                    }
+                  }}
+                  className={`flex items-center justify-between p-2 rounded cursor-pointer group transition-colors ${
+                    selectedPlatform === pName ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`text-sm ${selectedPlatform === pName ? 'text-white font-bold' : 'text-slate-300'}`}>
+                    {pName === 'Total' ? 'Total Stats' : pName}
+                  </span>
+                  {selectedPlatform === pName && <Check size={14} className="text-green-500" />}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -318,16 +314,13 @@ export default function StudentDashboard() {
         <div className="bg-[#15161B] rounded-xl p-4 border border-white/5">
           <div className="flex justify-between items-center mb-1">
             <h3 className="text-sm font-bold text-white">Global Rank</h3>
-            <span className="text-[10px] text-[#8FB6FF] cursor-pointer hover:underline">How it works?</span>
+            <span className="text-[10px] text-[#8FB6FF] cursor-pointer hover:underline">Codolio C-Score</span>
           </div>
           <p className="text-xs text-slate-500 mb-3">Based on C Score</p>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/5 rounded-lg"><BookOpen size={20} className="text-slate-400" /></div>
             <div className="text-2xl font-bold text-white">12005</div>
           </div>
-          <button className="w-full mt-4 py-2 bg-[#E67700] text-white rounded-lg text-xs font-bold hover:bg-[#CC6A00] transition-colors">
-            View Leaderboard
-          </button>
         </div>
 
       </div>
@@ -339,7 +332,7 @@ export default function StudentDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           <div className="bg-[#15161B] rounded-xl p-6 border border-white/5 flex flex-col items-center justify-center relative h-40">
             <Info size={14} className="absolute top-4 right-4 text-slate-600 cursor-pointer" />
-            <p className="text-slate-400 font-medium mb-1">{selectedPlatform === 'Total' ? 'Total Questions' : `${selectedPlatform} Questions`}</p>
+            <p className="text-slate-400 font-medium mb-1">{selectedPlatform === 'Total' ? 'Total Questions' : `${selectedPlatform} Solved`}</p>
             <p className="text-5xl font-bold text-white">{currentStats.questions}</p>
           </div>
 
@@ -352,12 +345,13 @@ export default function StudentDashboard() {
           {/* Heatmap Widget */}
           <div className="bg-[#15161B] rounded-xl p-4 border border-white/5 flex flex-col relative xl:col-span-2 h-40">
             <div className="flex justify-between items-start mb-2 px-1">
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">{currentStats.submissions} Submissions in past 6 months</span>
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">
+                {currentStats.submissions} Submissions in past 6 months
+              </span>
               <div className="text-[10px] text-slate-400 flex gap-4">
                 <span>Max.Streak <strong className="text-white">{currentStats.streak}</strong></span>
                 <span>Current.Streak <strong className="text-white">{currentStats.streak}</strong></span>
               </div>
-              <Info size={12} className="text-slate-600" />
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 overflow-hidden">
@@ -366,18 +360,19 @@ export default function StudentDashboard() {
                   {week.map((level, dIdx) => (
                     <div
                       key={dIdx}
-                      className={`w-2.5 h-2.5 rounded-[1px] ${level === 0 ? 'bg-[#2A2B30]' :
+                      className={`w-2.5 h-2.5 rounded-[1px] ${
+                        level === 0 ? 'bg-[#2A2B30]' :
                         level === 1 ? 'bg-[#0E4429]' :
-                          level === 2 ? 'bg-[#006D32]' :
-                            level === 3 ? 'bg-[#26A641]' : 'bg-[#39D353]'
-                        }`}
+                        level === 2 ? 'bg-[#006D32]' :
+                        level === 3 ? 'bg-[#26A641]' : 'bg-[#39D353]'
+                      }`}
                     ></div>
                   ))}
                 </div>
               ))}
             </div>
             <div className="flex justify-between px-2 text-[8px] text-slate-500 mt-1 font-mono uppercase">
-              <span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span>
+              <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span>
             </div>
           </div>
         </div>
@@ -387,14 +382,22 @@ export default function StudentDashboard() {
           {/* Total Contests Breakdown */}
           <div className="bg-[#15161B] rounded-xl p-6 border border-white/5 flex flex-col">
             <h3 className="text-center text-slate-400 font-medium mb-2">Total Contests</h3>
-            <div className="text-center text-6xl font-bold text-white mb-6">34</div>
+            <div className="text-center text-6xl font-bold text-white mb-6">50</div>
 
             <div className="space-y-3">
-              {platformContests.map(platform => (
+              {platformContests.map((platform) => (
                 <div
                   key={platform.name}
-                  onClick={() => setSelectedContestPlatform(platform.name)}
-                  className={`flex items-center justify-between p-2 rounded-lg border text-sm cursor-pointer transition-all ${selectedContestPlatform === platform.name ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
+                  onClick={() => {
+                    if (platformRatingData[platform.name]) {
+                      setSelectedContestPlatform(platform.name);
+                    }
+                  }}
+                  className={`flex items-center justify-between p-2 rounded-lg border text-sm cursor-pointer transition-all ${
+                    selectedContestPlatform === platform.name
+                      ? 'bg-white/10 border-white/20'
+                      : 'bg-white/5 border-white/5 hover:bg-white/10'
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: platform.color }}></div>
@@ -451,54 +454,28 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        {/* Third Row: Awards & Difficulty */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
-          <div className="bg-[#15161B] rounded-xl p-6 border border-white/5 relative h-64">
-            <h3 className="text-slate-400 font-medium mb-4 flex justify-between items-center">
-              Awards <span className="text-slate-500 text-xs font-bold">{currentStats.awards}</span>
-            </h3>
-
-            <div className="flex flex-wrap gap-4 justify-center items-center h-[calc(100%-2rem)]">
-              {currentStats.awards > 0 && Array.from({ length: Math.min(currentStats.awards, 4) }).map((_, i) => {
-                const colors = [
-                  'bg-yellow-400/20 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]',
-                  'bg-yellow-500/20 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]',
-                  'bg-amber-600/20 border-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.2)]',
-                  'bg-slate-700/40 border-slate-600 text-slate-300'
-                ];
-                const icons = ['🔥', '⭐', '🏆', 'C'];
-                return (
-                  <div key={i} className={`w-16 h-16 rounded-full border-2 flex items-center justify-center font-bold ${colors[i % colors.length]}`}>
-                    {icons[i % icons.length]}
-                  </div>
-                );
-              })}
-              {currentStats.awards === 0 && <div className="text-slate-600 text-sm">No awards yet</div>}
+        {/* Third Row: Difficulty Breakdown */}
+        <div className="bg-[#15161B] rounded-xl p-6 border border-white/5 flex items-center gap-8 h-48 mb-6">
+          <div className="relative w-32 h-32 rounded-full border-[12px] border-[#1F2025] flex items-center justify-center shrink-0 shadow-inner">
+            <div className="absolute inset-0 rounded-full border-[12px] border-yellow-500/30 border-t-yellow-500 border-r-emerald-500 border-l-red-500 -rotate-45"></div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-white">{currentStats.questions}</span>
+              <span className="text-[10px] text-slate-500">Solved</span>
             </div>
-            <button className="absolute bottom-4 left-1/2 -translate-x-1/2 text-blue-400 text-xs hover:underline">show more</button>
           </div>
 
-          <div className="bg-[#15161B] rounded-xl p-6 border border-white/5 flex items-center gap-8 h-64">
-            <div className="relative w-36 h-36 rounded-full border-[14px] border-[#1F2025] flex items-center justify-center shrink-0 shadow-inner">
-              <div className="absolute inset-0 rounded-full border-[14px] border-yellow-500/30 border-t-yellow-500 border-r-emerald-500 border-l-red-500 -rotate-45"></div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-bold text-white">{currentStats.questions}</span>
-              </div>
+          <div className="flex-1 space-y-3">
+            <div className="bg-white/5 p-2.5 rounded-lg border border-white/5 flex justify-between items-center">
+              <span className="text-emerald-500 font-bold text-sm">Easy</span>
+              <span className="text-white font-bold text-sm">{currentStats.easy}</span>
             </div>
-
-            <div className="flex-1 space-y-5">
-              <div className="bg-white/5 p-3 rounded-lg border border-white/5 flex justify-between items-center">
-                <span className="text-emerald-500 font-bold text-sm">Easy</span>
-                <span className="text-white font-bold text-sm">{currentStats.easy}</span>
-              </div>
-              <div className="bg-white/5 p-3 rounded-lg border border-white/5 flex justify-between items-center">
-                <span className="text-yellow-500 font-bold text-sm">Medium</span>
-                <span className="text-white font-bold text-sm">{currentStats.medium}</span>
-              </div>
-              <div className="bg-white/5 p-3 rounded-lg border border-white/5 flex justify-between items-center">
-                <span className="text-red-500 font-bold text-sm">Hard</span>
-                <span className="text-white font-bold text-sm">{currentStats.hard}</span>
-              </div>
+            <div className="bg-white/5 p-2.5 rounded-lg border border-white/5 flex justify-between items-center">
+              <span className="text-yellow-500 font-bold text-sm">Medium</span>
+              <span className="text-white font-bold text-sm">{currentStats.medium}</span>
+            </div>
+            <div className="bg-white/5 p-2.5 rounded-lg border border-white/5 flex justify-between items-center">
+              <span className="text-red-500 font-bold text-sm">Hard</span>
+              <span className="text-white font-bold text-sm">{currentStats.hard}</span>
             </div>
           </div>
         </div>

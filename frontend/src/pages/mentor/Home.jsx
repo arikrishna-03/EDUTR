@@ -105,12 +105,6 @@ const Home = () => {
         { name: 'Sun', present: 90 },
     ];
 
-    const messages = [
-        { id: 1, name: 'Ravi', msg: 'Can you share notes?', time: '1h', avatar: 'R', color: 'bg-indigo-500' },
-        { id: 2, name: 'Sonal', msg: 'Will attend tomorrow.', time: '3h', avatar: 'S', color: 'bg-blue-500' },
-        { id: 3, name: 'Class A', msg: 'Group discussion scheduled', time: 'yesterday', avatar: 'C', color: 'bg-cyan-500' },
-    ];
-
     const upcomingClasses = [
         { subject: 'AIDS - A', time: '10:00 AM - 11:00 AM' },
         { subject: 'Elective', time: '2:00 PM - 3:00 PM' },
@@ -229,33 +223,6 @@ const Home = () => {
 
                 {/* Right Sidebar Widgets */}
                 <div className="space-y-6">
-                    {/* Messages */}
-                    <div className="bg-[#13151b] p-6 rounded-xl border border-white/5 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-lg">Messages</h3>
-                            <span className="text-xs text-slate-500">Recent chats</span>
-                        </div>
-                        <div className="space-y-4">
-                            {messages.map((msg) => (
-                                <div key={msg.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group">
-                                    <div className={`w-10 h-10 rounded-full ${msg.color} flex items-center justify-center text-white font-bold`}>
-                                        {msg.avatar}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-baseline">
-                                            <h4 className="font-medium text-sm text-white">{msg.name}</h4>
-                                            <span className="text-xs text-slate-500">{msg.time}</span>
-                                        </div>
-                                        <p className="text-xs text-slate-400 truncate group-hover:text-slate-300">{msg.msg}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="w-full mt-4 bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-3 rounded-lg text-sm transition-colors">
-                            View All Messages
-                        </button>
-                    </div>
-
                     {/* Daily Timetable Widget */}
                     <TimetableWidget isEditable={true} mentorId={mentorId} />
                 </div>
