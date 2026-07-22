@@ -13,22 +13,23 @@ export default function Hackathon() {
         const fetchHackathons = async () => {
             try {
                 const token = localStorage.getItem('token');
-                if (!token) {
-                    setError("Not authenticated");
-                    setLoading(false);
-                    return;
+                if (token) {
+                    const response = await axios.get('http://localhost:5000/api/hackathons', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                        setHackathons(response.data);
+                        setLoading(false);
+                        return;
+                    }
                 }
-
-                const response = await axios.get('http://localhost:5000/api/hackathon', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setHackathons(response.data);
             } catch (err) {
-                console.error("Error fetching hackathons:", err);
-                setError("Failed to load hackathons.");
-            } finally {
-                setLoading(false);
+                console.warn("Backend offline or error fetching student hackathons, loading local data", err);
             }
+
+            const local = JSON.parse(localStorage.getItem('hackathons') || '[]');
+            setHackathons(local);
+            setLoading(false);
         };
 
         fetchHackathons();

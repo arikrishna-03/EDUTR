@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     User, Mail, Phone, MapPin, Calendar,
     Shield, Bell, Moon, Lock, Camera,
-    Save, X, Award, BookOpen, Users
+    Save, X, Award, BookOpen, Users, Pencil, Copy, Check
 } from 'lucide-react';
 import DashboardHeader from '../../components/DashboardHeader';
 
@@ -38,6 +38,15 @@ const Profile = () => {
     const [notifications, setNotifications] = useState(true);
     const [darkMode, setDarkMode] = useState(true);
     const [formData, setFormData] = useState(DEFAULT_PROFILE);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyMentorId = () => {
+        if (formData.mentorId) {
+            navigator.clipboard.writeText(formData.mentorId);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
 
     useEffect(() => {
         const savedProfile = localStorage.getItem('mentorProfile');
@@ -121,54 +130,36 @@ const Profile = () => {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex gap-3">
-                                {isEditing ? (
-                                    <>
-                                        <button
-                                            onClick={() => setIsEditing(false)}
-                                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-sm border border-white/5 flex items-center gap-2 transition-colors"
-                                        >
-                                            <X size={16} /> Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSave}
-                                            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
-                                        >
-                                            <Save size={16} /> Save Changes
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button
-                                        onClick={() => setIsEditing(true)}
-                                        className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
-                                    >
-                                        Edit Profile
-                                    </button>
-                                )}
+                            <div className="flex items-center gap-3">
+                                {/* Mentor ID Badge */}
+                                <div className="px-4 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 font-mono text-sm font-semibold flex items-center gap-2 shadow-inner">
+                                    <Shield size={16} className="text-indigo-400" />
+                                    <span>Mentor ID: <strong className="text-white font-mono">{formData.mentorId}</strong></span>
+                                </div>
+
+                                {/* Copy Mentor ID Button */}
+                                <button
+                                    onClick={handleCopyMentorId}
+                                    title={copied ? "Copied!" : "Copy Mentor ID"}
+                                    className={`p-2.5 rounded-xl transition-all duration-200 cursor-pointer shadow-lg flex items-center justify-center active:scale-95 ${
+                                        copied
+                                            ? 'bg-emerald-600 text-white ring-2 ring-emerald-400/30'
+                                            : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-indigo-500/25'
+                                    }`}
+                                >
+                                    {copied ? (
+                                        <Check size={18} className="animate-in zoom-in duration-200" />
+                                    ) : (
+                                        <Copy size={18} />
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 2. Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                    { label: 'Total Classes', value: '124', icon: BookOpen, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                    { label: 'Students Mentored', value: '450+', icon: Users, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-                    { label: 'Avg Attendance', value: '94%', icon: Award, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-                ].map((stat, idx) => (
-                    <div key={idx} className="bg-[#1a1c23] p-6 rounded-2xl border border-white/5 flex items-center gap-4 hover:bg-[#20222b] transition-colors">
-                        <div className={`w-12 h-12 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center`}>
-                            <stat.icon size={24} />
-                        </div>
-                        <div>
-                            <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-                            <p className="text-2xl font-bold text-white">{stat.value}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
+
 
             {/* 3. Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -178,7 +169,30 @@ const Profile = () => {
                     <div className="bg-[#1a1c23] rounded-2xl border border-white/5 overflow-hidden">
                         <div className="p-6 border-b border-white/5 flex items-center justify-between">
                             <h3 className="font-semibold text-lg text-white">Personal Information</h3>
-                            <Shield size={18} className="text-slate-500" />
+                            {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-xs border border-white/5 flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    >
+                                        <X size={14} /> Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSave}
+                                        className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                                    >
+                                        <Save size={14} /> Save Changes
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    title="Edit Personal Information"
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all cursor-pointer"
+                                >
+                                    <Pencil size={18} />
+                                </button>
+                            )}
                         </div>
                         <div className="p-6 space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

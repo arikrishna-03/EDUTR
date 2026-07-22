@@ -10,15 +10,38 @@ const Attendance = () => {
     const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Mock Mentor ID (consistency with Students.jsx)
-    const currentMentorId = 'MENTOR123';
+    const getActiveMentorId = () => {
+        try {
+            const savedProfile = JSON.parse(localStorage.getItem('mentorProfile') || '{}');
+            if (savedProfile.mentorId) return savedProfile.mentorId.trim().toUpperCase();
+
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (user.id) return user.id.trim().toUpperCase();
+            if (user.mentorId) return user.mentorId.trim().toUpperCase();
+        } catch (e) {
+            console.error(e);
+        }
+        return 'MENTOR123';
+    };
+
+    const currentMentorId = getActiveMentorId();
 
     // 1. Load students on mount
     useEffect(() => {
+        const activeId = getActiveMentorId();
         const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-        const myStudents = allStudents.filter(s => s.mentorId === currentMentorId);
+        const myStudents = allStudents.filter(
+            s => s.mentorId && s.mentorId.trim().toUpperCase() === activeId
+        );
+        const seen = new Set();
+        const uniqueStudents = myStudents.filter(s => {
+            const key = s.email || s.id || s.name;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
 
-        const studentsWithReg = myStudents.map((s, index) => ({
+        const studentsWithReg = uniqueStudents.map((s, index) => ({
             ...s,
             regNo: s.regNo || `REG${2024000 + index + 1}`
         }));

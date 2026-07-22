@@ -31,17 +31,17 @@ const Home = () => {
     const timetableInputRef = React.useRef(null);
 
     useEffect(() => {
+        const savedProfile = JSON.parse(localStorage.getItem('mentorProfile') || '{}');
+        if (savedProfile.mentorId) {
+            setMentorId(savedProfile.mentorId.trim().toUpperCase());
+            return;
+        }
+
         const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        // If the logged in user is a mentor, their ID is 'id'. 
-        // We handle different formats based on Login.jsx storage logic.
-        // Login.jsx stores: { role: 'mentor', id: 'MENTOR123', name: '...' }
-        // Profile.jsx defines ID as 'MNT-2024-001' effectively through UI, but Login uses hardcoded.
-        // We will prioritize the ID currently in session storage.
-        if (user && user.role === 'mentor' && user.id) {
-            setMentorId(user.id);
-        } else if (user && user.role === 'mentor' && user.mentorId) {
-            // Fallback if schema changes
-            setMentorId(user.mentorId);
+        if (user && user.id) {
+            setMentorId(user.id.trim().toUpperCase());
+        } else if (user && user.mentorId) {
+            setMentorId(user.mentorId.trim().toUpperCase());
         }
     }, []);
 
@@ -52,8 +52,11 @@ const Home = () => {
     });
 
     useEffect(() => {
+        const activeId = mentorId.trim().toUpperCase();
         const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-        const myStudents = allStudents.filter(s => s.mentorId === mentorId);
+        const myStudents = allStudents.filter(
+            s => s.mentorId && s.mentorId.trim().toUpperCase() === activeId
+        );
         
         const todayStr = new Date().toISOString().split('T')[0];
         const history = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
@@ -119,10 +122,6 @@ const Home = () => {
 
     return (
         <div className="space-y-6 text-slate-100">
-            {/* 
-        Unified Header Row 
-        Contains "Class Tracker" Title AND the Global Controls (Search, Profile, etc.)
-      */}
             {/* 
         Unified Header Row 
         Contains "Class Tracker" Title AND the Global Controls (Search, Profile, etc.)

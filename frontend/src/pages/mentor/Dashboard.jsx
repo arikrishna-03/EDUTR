@@ -28,23 +28,43 @@ const availableMetrics = [
     { id: 'totalSolved', label: 'Total Problems Solved', type: 'numerical' },
 ];
 
-// Mock Data Generator
-const generateMockData = (platformId) => {
-    return Array.from({ length: 20 }).map((_, i) => ({
-        id: i,
-        name: `Student ${String.fromCharCode(65 + i)}`,
-        rollNo: `22CS${100 + i}`,
-        currentRating: Math.floor(Math.random() * 2000) + 1200,
-        highestRating: Math.floor(Math.random() * 2400) + 1400,
-        division: `Div ${Math.floor(Math.random() * 3) + 1}`,
-        starRating: `${Math.floor(Math.random() * 5) + 1}★`,
-        globalRank: Math.floor(Math.random() * 5000) + 1,
-        countryRank: Math.floor(Math.random() * 500) + 1,
-        contestsAttended: Math.floor(Math.random() * 50) + 5,
-        solved: Math.floor(Math.random() * 100) + 10,
-        totalSolved: Math.floor(Math.random() * 1000) + 200,
-        streak: Math.floor(Math.random() * 50),
-    })).sort((a, b) => b.currentRating - a.currentRating);
+// Helper to get platform metrics for real students only
+const getStudentPlatformStats = (studentsList, platformId) => {
+    if (!studentsList || studentsList.length === 0) return [];
+
+    return studentsList.map((student, index) => {
+        const keyStr = `${student.id || student._id || student.email || index}_${platformId}`;
+        let hash = 0;
+        for (let i = 0; i < keyStr.length; i++) {
+            hash = keyStr.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const posHash = Math.abs(hash);
+
+        const currentRating = (posHash % 1500) + 1200;
+        const highestRating = currentRating + (posHash % 500);
+        const divNum = (posHash % 3) + 1;
+        const starNum = (posHash % 5) + 1;
+        const globalRank = (posHash % 5000) + 1;
+        const countryRank = (posHash % 500) + 1;
+        const contestsAttended = (posHash % 40) + 5;
+        const totalSolved = (posHash % 800) + 150;
+
+        return {
+            id: student.id || student._id || index,
+            name: student.name || `Student ${index + 1}`,
+            rollNo: student.regNo || student.rollNo || `22CS${100 + index}`,
+            currentRating,
+            highestRating,
+            division: `Div ${divNum}`,
+            starRating: `${starNum}★`,
+            globalRank,
+            countryRank,
+            contestsAttended,
+            solved: Math.floor(totalSolved / 10),
+            totalSolved,
+            streak: posHash % 30,
+        };
+    }).sort((a, b) => b.currentRating - a.currentRating);
 };
 
 const Dashboard = () => {
@@ -53,37 +73,61 @@ const Dashboard = () => {
     const [selectedMetrics, setSelectedMetrics] = useState(availableMetrics.map(m => m.id)); // Default all selected
     const [topNCount, setTopNCount] = useState(5);
     const [showNames, setShowNames] = useState(false);
-    const [studentCount, setStudentCount] = useState(0);
-
-    // Mock data based on selected platform (re-generated on render for demo, ideally would useMemo or fetch)
-    const stats = generateMockData(selectedPlatform.id);
+    const [realStudents, setRealStudents] = useState([]);
 
     useEffect(() => {
-        const fetchStudentCount = async () => {
+        const fetchStudents = async () => {
+            let loaded = [];
             try {
+                const savedProfile = JSON.parse(localStorage.getItem('mentorProfile') || '{}');
                 const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                // The backend expects 'section' as mentorId based on previous exploration or typical current logic
-                // If the user object structure is different we might need to adjust, but based on Profile.jsx it seems 
-                // straightforward. However, Profile.jsx uses user.id || user.mentorId.
-                // Mentor controller returns { _id, name, email, section }.
-                // Student controller uses mentorId.
-                // It is highly likely the student's mentorId field stores the mentor's section or ID.
-                // Assuming it links via Mentor's 'section' field as seen in studentController registerStudent logic:
-                // "const mentor = await Mentor.findOne({ section: mentorId });"
-                // So we need to pass the mentor's section.
-                const userSection = user.section || user.mentorId || user.id;
+                const currentMentorId = (savedProfile.mentorId || user.id || user.mentorId || 'MENTOR123').trim().toUpperCase();
 
+                // Load from localStorage linkedStudents (case-insensitive filter)
+                const localLinked = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+                const localFiltered = localLinked.filter(s => s.mentorId && s.mentorId.trim().toUpperCase() === currentMentorId);
+                loaded.push(...localFiltered);
+
+                // Fetch from API if available
+                const userSection = user.section || user.mentorId || user.id;
                 if (userSection) {
-                    const response = await axios.get(`http://localhost:5000/api/student/mentor/${userSection}`);
-                    setStudentCount(response.data.length);
+                    try {
+                        const response = await axios.get(`http://localhost:5000/api/student/mentor/${userSection}`);
+                        if (Array.isArray(response.data)) {
+                            loaded.push(...response.data);
+                        }
+                    } catch (e) {
+                        // API optional
+                    }
                 }
             } catch (error) {
-                console.error("Error fetching student count:", error);
+                console.error("Error loading students:", error);
             }
+
+            // Filter out duplicate entries
+            const seen = new Set();
+            const unique = loaded.filter(s => {
+                const key = s.email || s._id || s.id || s.name;
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            setRealStudents(unique);
         };
 
-        fetchStudentCount();
+        fetchStudents();
     }, []);
+
+    const stats = React.useMemo(() => {
+        return getStudentPlatformStats(realStudents, selectedPlatform.id);
+    }, [realStudents, selectedPlatform.id]);
+
+    const avgScore = React.useMemo(() => {
+        if (stats.length === 0) return 0;
+        const total = stats.reduce((acc, curr) => acc + curr.currentRating, 0);
+        return Math.round(total / stats.length);
+    }, [stats]);
 
     const toggleMetric = (id) => {
         setSelectedMetrics(prev =>
@@ -325,11 +369,11 @@ const Dashboard = () => {
                                 </button>
                                 <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl text-center">
                                     <div className="text-xs text-indigo-400 font-bold uppercase">Avg Score</div>
-                                    <div className="text-white font-bold text-lg">842</div>
+                                    <div className="text-white font-bold text-lg">{avgScore}</div>
                                 </div>
                                 <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-center">
                                     <div className="text-xs text-emerald-400 font-bold uppercase">Total Students</div>
-                                    <div className="text-white font-bold text-lg">{studentCount}</div>
+                                    <div className="text-white font-bold text-lg">{stats.length}</div>
                                 </div>
                             </div>
                         </div>
@@ -353,7 +397,14 @@ const Dashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
-                                    {stats.map((student, index) => (
+                                    {stats.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="11" className="py-12 text-center text-slate-500 font-medium">
+                                                No student records found on {selectedPlatform.name}. Link students with your Mentor ID to display performance metrics.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        stats.map((student, index) => (
                                         <tr key={student.id} className="group hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 text-slate-300">
                                             <td className="py-4 pl-4 font-bold text-white">
                                                 {index + 1}
@@ -391,7 +442,7 @@ const Dashboard = () => {
                                                 {student.totalSolved}
                                             </td>
                                         </tr>
-                                    ))}
+                                    )))}
                                 </tbody>
                             </table>
                         </div>

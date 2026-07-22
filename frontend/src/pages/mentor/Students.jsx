@@ -8,28 +8,46 @@ const Students = () => {
     const [students, setStudents] = useState([]);
     const [activeMenuId, setActiveMenuId] = useState(null);
 
-    // For demo purposes, we'll assume the currently logged-in mentor is 'MENTOR123'
-    // In a real app, this would come from auth context
-    const currentMentorId = 'MENTOR123';
+    // Dynamically retrieve the active Mentor ID from session/local storage
+    const getActiveMentorId = () => {
+        try {
+            const savedProfile = JSON.parse(localStorage.getItem('mentorProfile') || '{}');
+            if (savedProfile.mentorId) return savedProfile.mentorId.trim().toUpperCase();
+
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (user.id) return user.id.trim().toUpperCase();
+            if (user.mentorId) return user.mentorId.trim().toUpperCase();
+        } catch (e) {
+            console.error(e);
+        }
+        return 'MENTOR123';
+    };
+
+    const currentMentorId = getActiveMentorId();
 
     useEffect(() => {
         // Load students from local storage
         const loadStudents = () => {
+            const activeId = getActiveMentorId();
             const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-            // Filter students linked to this mentor
-            // For broader demo visualization, if no specific ID is enforced, we might show all, 
-            // but requirements say "login using respective mentor id".
-
-            // If the user entered 'MENTOR123', we show them here.
-            // If we are testing as MENTOR123, we should see them.
-            const myStudents = allStudents.filter(s => s.mentorId === currentMentorId);
-            setStudents(myStudents);
+            
+            // Filter students linked to this mentor (case-insensitive match)
+            const myStudents = allStudents.filter(
+                s => s.mentorId && s.mentorId.trim().toUpperCase() === activeId
+            );
+            const seen = new Set();
+            const uniqueStudents = myStudents.filter(s => {
+                const key = s.email || s.id || s.name;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+            setStudents(uniqueStudents);
         };
 
         loadStudents();
         // Add event listener for storage changes (in case of multiple tabs)
         window.addEventListener('storage', loadStudents);
-        return () => window.removeEventListener('storage', loadStudents);
         return () => window.removeEventListener('storage', loadStudents);
     }, []);
 
@@ -38,9 +56,9 @@ const Students = () => {
             const updatedStudents = students.filter(s => s.id !== studentId);
             setStudents(updatedStudents);
 
-            // Update local storage (update the full list logic needed)
+            const activeId = getActiveMentorId();
             const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-            const remainingStudents = allStudents.filter(s => s.id !== studentId || s.mentorId !== currentMentorId);
+            const remainingStudents = allStudents.filter(s => s.id !== studentId || (s.mentorId && s.mentorId.trim().toUpperCase() !== activeId));
             localStorage.setItem('linkedStudents', JSON.stringify(remainingStudents));
         }
         setActiveMenuId(null);
