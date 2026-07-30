@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../../components/DashboardHeader';
-import { User, Mail, Calendar, Search, Filter, MoreVertical, GraduationCap, Trash2 } from 'lucide-react';
+import { User, Mail, Calendar, Search, Filter, MoreVertical, GraduationCap, Trash2, Code, Download } from 'lucide-react';
 
 const Students = () => {
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [activeMenuId, setActiveMenuId] = useState(null);
 
     // Dynamically retrieve the active Mentor ID from session/local storage
@@ -21,6 +22,45 @@ const Students = () => {
             console.error(e);
         }
         return 'MENTOR123';
+    };
+
+    const handleDownloadStudent = (student) => {
+        const name = student?.name || 'Student';
+        const rollNo = student?.rollNo || student?.registerNo || 'N/A';
+        const email = student?.email || 'N/A';
+        const mentorId = student?.mentorId || getActiveMentorId();
+
+        const rows = [
+            ["STUDENT DETAILS REPORT"],
+            ["Generated On", new Date().toLocaleString()],
+            ["----------------------------------------------------"],
+            ["Student Name", name],
+            ["Register / Roll No", rollNo],
+            ["Email Address", email],
+            ["Mentor ID", mentorId],
+            ["Joined Date", student?.joinedAt || "Active"],
+            ["Status", "Active"],
+            ["----------------------------------------------------"],
+            ["CONNECTED PLATFORMS & HANDLES"],
+            ["LeetCode Handle", student?.leetcodeHandle || name.toLowerCase()],
+            ["CodeChef Handle", student?.codechefHandle || name.toLowerCase()],
+            ["CodeForces Handle", student?.codeforcesHandle || name.toLowerCase()],
+            ["GeeksForGeeks Handle", student?.gfgHandle || name.toLowerCase()]
+        ];
+
+        const csvContent = rows
+            .map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+            .join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${name.replace(/\s+/g, "_")}_Details_Report.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     const currentMentorId = getActiveMentorId();
@@ -41,7 +81,8 @@ const Students = () => {
                 if (seen.has(key)) return false;
                 seen.add(key);
                 return true;
-            });
+            }).sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
+
             setStudents(uniqueStudents);
         };
 
@@ -64,6 +105,11 @@ const Students = () => {
         setActiveMenuId(null);
     };
 
+    const filteredStudents = students.filter(s =>
+        (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (s.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="space-y-6 animate-in fade-in zoom-in duration-300">
             <DashboardHeader title="My Students" />
@@ -76,6 +122,8 @@ const Students = () => {
                         <input
                             type="text"
                             placeholder="Search students..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-[#13151b] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                         />
                     </div>
@@ -89,89 +137,104 @@ const Students = () => {
             </div>
 
             {/* Students Grid */}
-            {students.length === 0 ? (
+            {filteredStudents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 bg-[#1a1c23] rounded-2xl border border-white/5 border-dashed">
                     <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
                         <User size={32} className="text-slate-500" />
                     </div>
                     <h3 className="text-xl font-semibold text-white mb-2">No Students Found</h3>
                     <p className="text-slate-500 text-center max-w-sm">
-                        Students who login with your Mentor ID ({currentMentorId}) will appear here.
+                        {students.length === 0
+                            ? `Students who login with your Mentor ID (${currentMentorId}) will appear here.`
+                            : `No students matching "${searchTerm}".`}
                     </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {students.map((student) => (
-                        <div key={student.id} className="group bg-[#1a1c23] rounded-2xl border border-white/5 p-6 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 relative overflow-hidden">
+                    {filteredStudents.map((student) => {
+                        const trackedPlatforms = ['LeetCode', 'CodeChef', 'CodeForces', 'GeeksForGeeks', 'CodeStudio'];
+                        return (
+                            <div key={student.id} className="group bg-[#1a1c23] rounded-2xl border border-white/5 p-6 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between">
 
-                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                <div className="relative">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    <div className="relative">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveMenuId(activeMenuId === student.id ? null : student.id);
+                                            }}
+                                            className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-white"
+                                        >
+                                            <MoreVertical size={16} />
+                                        </button>
+
+                                        {activeMenuId === student.id && (
+                                            <div className="absolute right-0 mt-2 w-48 bg-[#1a1c23] border border-white/10 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200 z-20">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleRemoveStudent(student.id);
+                                                    }}
+                                                    className="w-full px-4 py-3 flex items-center gap-2 text-red-500 hover:bg-white/5 text-sm font-medium transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                    Remove Student
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-center text-center">
+                                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 mb-4 shadow-lg shadow-indigo-500/20">
+                                        <div className="w-full h-full bg-[#1a1c23] rounded-2xl flex items-center justify-center">
+                                            <span className="text-2xl font-bold text-white uppercase">{(student.name || 'ST').substring(0, 2)}</span>
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-white mb-1 truncate w-full">{student.name}</h3>
+                                    <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-4">
+                                        <Mail size={12} />
+                                        <span className="truncate max-w-[180px]">{student.email}</span>
+                                    </div>
+
+                                    <div className="w-full h-px bg-white/5 mb-4"></div>
+
+                                    <div className="w-full flex justify-between items-center text-xs font-medium mb-4">
+                                        <div className="flex flex-col items-start gap-1">
+                                            <span className="text-slate-500">Joined</span>
+                                            <div className="flex items-center gap-1 text-slate-300">
+                                                <Calendar size={12} /> {student.joinedAt || 'Active'}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-slate-500">Status</span>
+                                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                Active
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 mt-6">
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setActiveMenuId(activeMenuId === student.id ? null : student.id);
-                                        }}
-                                        className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-white"
+                                        onClick={() => navigate(`/mentor/student/${student.id}`)}
+                                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-indigo-600 hover:text-white text-slate-300 text-sm font-medium transition-all duration-200 border border-white/5 hover:border-indigo-500 flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white cursor-pointer"
                                     >
-                                        <MoreVertical size={16} />
+                                        <GraduationCap size={16} />
+                                        View Progress
                                     </button>
-
-                                    {activeMenuId === student.id && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-[#1a1c23] border border-white/10 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleRemoveStudent(student.id);
-                                                }}
-                                                className="w-full px-4 py-3 flex items-center gap-2 text-red-500 hover:bg-white/5 text-sm font-medium transition-colors"
-                                            >
-                                                <Trash2 size={14} />
-                                                Remove Student
-                                            </button>
-                                        </div>
-                                    )}
+                                    <button
+                                        onClick={() => handleDownloadStudent(student)}
+                                        title="Download Details Report"
+                                        className="px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 transition-all flex items-center justify-center cursor-pointer"
+                                    >
+                                        <Download size={16} />
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="flex flex-col items-center text-center">
-                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 mb-4 shadow-lg shadow-indigo-500/20">
-                                    <div className="w-full h-full bg-[#1a1c23] rounded-2xl flex items-center justify-center">
-                                        <span className="text-2xl font-bold text-white uppercase">{student.name.substring(0, 2)}</span>
-                                    </div>
-                                </div>
-
-                                <h3 className="text-lg font-bold text-white mb-1 truncate w-full">{student.name}</h3>
-                                <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-4">
-                                    <Mail size={12} />
-                                    <span className="truncate max-w-[150px]">{student.email}</span>
-                                </div>
-
-                                <div className="w-full h-px bg-white/5 mb-4"></div>
-
-                                <div className="w-full flex justify-between items-center text-xs font-medium">
-                                    <div className="flex flex-col items-start gap-1">
-                                        <span className="text-slate-500">Joined</span>
-                                        <div className="flex items-center gap-1 text-slate-300">
-                                            <Calendar size={12} /> {student.joinedAt}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                        <span className="text-slate-500">Status</span>
-                                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                            Active
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={() => navigate(`/mentor/student/${student.id}`)}
-                                    className="w-full mt-6 py-2 rounded-xl bg-white/5 hover:bg-indigo-600 hover:text-white text-slate-300 text-sm font-medium transition-all duration-200 border border-white/5 hover:border-indigo-500 flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white">
-                                    <GraduationCap size={16} />
-                                    View Progress
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

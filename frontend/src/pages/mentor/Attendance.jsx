@@ -39,7 +39,7 @@ const Attendance = () => {
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
-        });
+        }).sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
 
         const studentsWithReg = uniqueStudents.map((s, index) => ({
             ...s,

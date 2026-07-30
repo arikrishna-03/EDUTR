@@ -164,6 +164,23 @@ export const PlatformSettingsPanel = () => {
     const saveToStorage = (newData) => {
         setPlatformsData(newData);
         localStorage.setItem('connectedPlatforms', JSON.stringify(newData));
+
+        // Sync with linkedStudents for mentor dashboard tracking
+        try {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (user.email || user.id) {
+                const linked = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+                const updated = linked.map(s => {
+                    if (s.email === user.email || s.id === user.id) {
+                        return { ...s, connectedPlatforms: newData };
+                    }
+                    return s;
+                });
+                localStorage.setItem('linkedStudents', JSON.stringify(updated));
+            }
+        } catch (e) {
+            console.error("Error syncing platform data to linkedStudents:", e);
+        }
     };
 
     const handleSubmit = (platformName, url) => {

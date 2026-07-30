@@ -60,7 +60,7 @@ export const loginStudent = async (req, res) => {
 
 export const getStudentsByMentor = async (req, res) => {
   try {
-    const students = await Student.find({ mentorId: req.params.mentorId }).select("-password").sort({ createdAt: -1 });
+    const students = await Student.find({ mentorId: req.params.mentorId }).select("-password").sort({ name: 1 });
     res.status(200).json(students);
   } catch (err) {
     res.status(500).json({ message: "Error fetching students", error: err.message });

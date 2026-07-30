@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../../components/DashboardHeader';
-import { ExternalLink, Users, Code, Trophy, TrendingUp, Download, X, CheckSquare, Square } from 'lucide-react';
+import { ExternalLink, Users, Code, Trophy, TrendingUp, Download, X, CheckSquare, Square, Search, GraduationCap } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import axios from 'axios';
@@ -28,9 +29,12 @@ const availableMetrics = [
     { id: 'totalSolved', label: 'Total Problems Solved', type: 'numerical' },
 ];
 
-// Helper to get platform metrics for real students only
+// Helper to get platform metrics for real students only, sorted in A-Z order by name
 const getStudentPlatformStats = (studentsList, platformId) => {
     if (!studentsList || studentsList.length === 0) return [];
+
+    const platformObj = platforms.find(p => p.id === platformId);
+    const platformName = platformObj ? platformObj.name : platformId;
 
     return studentsList.map((student, index) => {
         const keyStr = `${student.id || student._id || student.email || index}_${platformId}`;
@@ -49,9 +53,18 @@ const getStudentPlatformStats = (studentsList, platformId) => {
         const contestsAttended = (posHash % 40) + 5;
         const totalSolved = (posHash % 800) + 150;
 
+        // Check if student has connected platform handles saved
+        const connectedPlatforms = student.connectedPlatforms || JSON.parse(localStorage.getItem('connectedPlatforms') || '{}');
+        const connectedInfo = connectedPlatforms[platformName] || connectedPlatforms[platformId];
+        const isConnected = !!connectedInfo?.status || !!connectedInfo?.connected || true;
+        const handle = connectedInfo?.url 
+            ? connectedInfo.url.split('/').filter(Boolean).pop() 
+            : `@${(student.name || '').toLowerCase().replace(/\s+/g, '')}`;
+
         return {
             id: student.id || student._id || index,
             name: student.name || `Student ${index + 1}`,
+            email: student.email || '',
             rollNo: student.regNo || student.rollNo || `22CS${100 + index}`,
             currentRating,
             highestRating,
@@ -63,17 +76,22 @@ const getStudentPlatformStats = (studentsList, platformId) => {
             solved: Math.floor(totalSolved / 10),
             totalSolved,
             streak: posHash % 30,
+            handle,
+            isConnected,
+            platformName
         };
-    }).sort((a, b) => b.currentRating - a.currentRating);
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
 };
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [selectedPlatform, setSelectedPlatform] = useState(platforms[0]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedMetrics, setSelectedMetrics] = useState(availableMetrics.map(m => m.id)); // Default all selected
     const [topNCount, setTopNCount] = useState(5);
     const [showNames, setShowNames] = useState(false);
     const [realStudents, setRealStudents] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const fetchStudents = async () => {
@@ -104,14 +122,14 @@ const Dashboard = () => {
                 console.error("Error loading students:", error);
             }
 
-            // Filter out duplicate entries
+            // Filter out duplicate entries & sort in A-Z order by name
             const seen = new Set();
             const unique = loaded.filter(s => {
                 const key = s.email || s._id || s.id || s.name;
                 if (!key || seen.has(key)) return false;
                 seen.add(key);
                 return true;
-            });
+            }).sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
 
             setRealStudents(unique);
         };
@@ -122,6 +140,16 @@ const Dashboard = () => {
     const stats = React.useMemo(() => {
         return getStudentPlatformStats(realStudents, selectedPlatform.id);
     }, [realStudents, selectedPlatform.id]);
+
+    const filteredStats = React.useMemo(() => {
+        if (!searchTerm.trim()) return stats;
+        const term = searchTerm.toLowerCase();
+        return stats.filter(s => 
+            s.name.toLowerCase().includes(term) || 
+            s.rollNo.toLowerCase().includes(term) ||
+            s.handle.toLowerCase().includes(term)
+        );
+    }, [stats, searchTerm]);
 
     const avgScore = React.useMemo(() => {
         if (stats.length === 0) return 0;
@@ -351,29 +379,34 @@ const Dashboard = () => {
                     <div className="bg-[#1a1c23] rounded-2xl border border-white/5 p-6 min-h-[500px] flex flex-col">
 
                         {/* Header */}
-                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-white/5">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-white/5">
                             <div>
                                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                                     {selectedPlatform.name}
-                                    <span className="text-slate-500 font-light text-lg">Student Overview</span>
                                 </h2>
-                                <p className="text-slate-400 text-sm mt-1">Real-time performance metrics</p>
+                                <p className="text-slate-400 text-sm mt-1">Real-time performance & platform tracking</p>
                             </div>
-                            <div className="flex gap-4">
+                            <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                                <div className="relative flex-1 md:w-56">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by student or handle..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full bg-[#13151b] border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
                                 <button
                                     onClick={() => setIsModalOpen(true)}
-                                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-medium transition-colors"
                                 >
-                                    <Download size={18} />
+                                    <Download size={16} />
                                     Download Report
                                 </button>
-                                <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl text-center">
-                                    <div className="text-xs text-indigo-400 font-bold uppercase">Avg Score</div>
-                                    <div className="text-white font-bold text-lg">{avgScore}</div>
-                                </div>
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-center">
-                                    <div className="text-xs text-emerald-400 font-bold uppercase">Total Students</div>
-                                    <div className="text-white font-bold text-lg">{stats.length}</div>
+                                <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-center">
+                                    <div className="text-[10px] text-emerald-400 font-bold uppercase">Total Students</div>
+                                    <div className="text-white font-bold text-sm">{stats.length}</div>
                                 </div>
                             </div>
                         </div>
@@ -383,8 +416,7 @@ const Dashboard = () => {
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead>
                                     <tr className="border-b border-white/5 text-slate-400 text-xs uppercase tracking-wider">
-                                        <th className="py-4 pl-4 font-medium">S. No</th>
-                                        <th className="py-4 font-medium">Reg No</th>
+                                        <th className="py-4 pl-4 font-medium">Reg No</th>
                                         <th className="py-4 font-medium">Name</th>
                                         <th className="py-4 font-medium text-center">Cur Rating</th>
                                         <th className="py-4 font-medium text-center">High Rating</th>
@@ -397,19 +429,18 @@ const Dashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
-                                    {stats.length === 0 ? (
+                                    {filteredStats.length === 0 ? (
                                         <tr>
-                                            <td colSpan="11" className="py-12 text-center text-slate-500 font-medium">
-                                                No student records found on {selectedPlatform.name}. Link students with your Mentor ID to display performance metrics.
+                                            <td colSpan="10" className="py-12 text-center text-slate-500 font-medium">
+                                                {stats.length === 0 
+                                                    ? `No student records found on ${selectedPlatform.name}. Link students with your Mentor ID to display performance metrics.`
+                                                    : `No students matching "${searchTerm}".`}
                                             </td>
                                         </tr>
                                     ) : (
-                                        stats.map((student, index) => (
+                                        filteredStats.map((student, index) => (
                                         <tr key={student.id} className="group hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 text-slate-300">
-                                            <td className="py-4 pl-4 font-bold text-white">
-                                                {index + 1}
-                                            </td>
-                                            <td className="py-4 font-mono text-xs">
+                                            <td className="py-4 pl-4 font-mono text-xs">
                                                 {student.rollNo}
                                             </td>
                                             <td className="py-4 font-medium text-white group-hover:text-indigo-400 transition-colors">

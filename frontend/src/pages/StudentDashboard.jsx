@@ -8,7 +8,10 @@ import {
   BookOpen,
   Info,
   Check,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  Trophy,
+  Download
 } from 'lucide-react';
 import {
   XAxis,
@@ -27,6 +30,76 @@ export default function StudentDashboard() {
   const [selectedPlatform, setSelectedPlatform] = useState('Total');
   const [selectedContestPlatform, setSelectedContestPlatform] = useState('LeetCode');
   const [isSyncing, setIsSyncing] = useState(false);
+
+  const mentorRankStats = React.useMemo(() => {
+    try {
+      const linked = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+      if (!linked || linked.length === 0) {
+        return { rank: 1, total: 1 };
+      }
+      const sorted = [...linked].sort((a, b) => (b.totalSolved || 0) - (a.totalSolved || 0));
+      const targetId = studentId || studentData?.id;
+      const idx = targetId ? sorted.findIndex(s => String(s.id) === String(targetId)) : 0;
+      return {
+        rank: idx !== -1 ? idx + 1 : 1,
+        total: sorted.length
+      };
+    } catch (e) {
+      return { rank: 1, total: 1 };
+    }
+  }, [studentId, studentData]);
+
+  const handleDownloadDetails = () => {
+    const name = profile.name || "Student";
+    const rollNo = studentData?.rollNo || "N/A";
+    const mentorId = studentData?.mentorId || "N/A";
+    const rank = mentorRankStats.rank;
+    const totalStudents = mentorRankStats.total;
+
+    const rows = [
+      ["STUDENT PERFORMANCE & PLATFORM DETAILS REPORT"],
+      ["Generated On", new Date().toLocaleString()],
+      ["----------------------------------------------------"],
+      ["Student Name", name],
+      ["Register / Roll No", rollNo],
+      ["Mentor ID", mentorId],
+      ["Mentor Group Rank", `#${rank} of ${totalStudents}`],
+      ["----------------------------------------------------"],
+      ["PERFORMANCE OVERVIEW"],
+      ["Total Problems Solved", currentStats.questions],
+      ["Easy Problems", currentStats.easy],
+      ["Medium Problems", currentStats.medium],
+      ["Hard Problems", currentStats.hard],
+      ["Active Days", currentStats.activeDays],
+      ["Current Streak", `${currentStats.streak} Days`],
+      ["Total Submissions", currentStats.submissions],
+      ["----------------------------------------------------"],
+      ["PLATFORM WISE BREAKDOWN"],
+      ["Platform", "Questions Solved", "Submissions", "Easy", "Medium", "Hard"],
+      ...Object.entries(platformStats).map(([pName, pStats]) => [
+        pName,
+        pStats.questions,
+        pStats.submissions,
+        pStats.easy,
+        pStats.medium,
+        pStats.hard
+      ])
+    ];
+
+    const csvContent = rows
+      .map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name.replace(/\s+/g, "_")}_Details_Report.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Platform Specific Statistics
   const platformStats = {
@@ -197,11 +270,11 @@ export default function StudentDashboard() {
     location: "India",
     college: "Student University",
   } : {
-    name: "Arikrishnan A",
-    handle: "@im_ari.ak03",
-    avatar: "A",
+    name: "user",
+    handle: "@user",
+    avatar: "U",
     location: "India",
-    college: "Kalaignar Karunanidhi Institute of Tech",
+    college: "Student University",
   };
 
   const heatmapData = React.useMemo(() => {
@@ -247,13 +320,23 @@ export default function StudentDashboard() {
           </p>
 
           <button
-            onClick={handleSyncData}
-            disabled={isSyncing}
-            className="w-full py-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-xs font-bold mb-6 hover:bg-indigo-600/30 transition-colors flex items-center justify-center gap-2"
+            onClick={handleDownloadDetails}
+            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500/30 rounded-lg text-xs font-bold mb-3 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20"
           >
-            <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
-            {isSyncing ? "Syncing Stats..." : "Sync Platform Data"}
+            <Download size={14} />
+            Download Details
           </button>
+
+          {!studentId && (
+            <button
+              onClick={handleSyncData}
+              disabled={isSyncing}
+              className="w-full py-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-xs font-bold mb-6 hover:bg-indigo-600/30 transition-colors flex items-center justify-center gap-2"
+            >
+              <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
+              {isSyncing ? "Syncing Stats..." : "Sync Platform Data"}
+            </button>
+          )}
 
           <div className="w-full space-y-3 text-sm text-slate-400 border-t border-white/5 pt-4 mb-6">
             <div className="flex items-center gap-3">
@@ -310,16 +393,23 @@ export default function StudentDashboard() {
           )}
         </div>
 
-        {/* Global Rank Widget */}
+        {/* Mentor Group Rank Widget */}
         <div className="bg-[#15161B] rounded-xl p-4 border border-white/5">
           <div className="flex justify-between items-center mb-1">
-            <h3 className="text-sm font-bold text-white">Global Rank</h3>
-            <span className="text-[10px] text-[#8FB6FF] cursor-pointer hover:underline">Codolio C-Score</span>
+            <h3 className="text-sm font-bold text-white">Mentor Group Rank</h3>
+            <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              Mentor Side
+            </span>
           </div>
-          <p className="text-xs text-slate-500 mb-3">Based on C Score</p>
+          <p className="text-xs text-slate-500 mb-3">Based on total student data in mentor side</p>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/5 rounded-lg"><BookOpen size={20} className="text-slate-400" /></div>
-            <div className="text-2xl font-bold text-white">12005</div>
+            <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
+              <Trophy size={20} className="text-yellow-400" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-white">#{mentorRankStats.rank}</span>
+              <span className="text-xs text-slate-400 font-medium">/ {mentorRankStats.total} Students</span>
+            </div>
           </div>
         </div>
 
@@ -479,7 +569,6 @@ export default function StudentDashboard() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
