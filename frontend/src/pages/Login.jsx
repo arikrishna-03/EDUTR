@@ -13,10 +13,12 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // State for Google Login Interception
+  // State for Google Login Interception & Personal Account Modal
   const [showMentorIdModal, setShowMentorIdModal] = useState(false);
+  const [showGoogleAccountModal, setShowGoogleAccountModal] = useState(false);
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null);
   const [googleMentorId, setGoogleMentorId] = useState('');
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
