@@ -22,6 +22,7 @@ import MentorNotifications from './pages/mentor/Notifications';
 const App = () => {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
 
       {/* Mentor Routes */}
