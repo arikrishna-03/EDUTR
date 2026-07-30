@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "cd frontend && npm install && npm run build",
     "db": "cd backend && node start-db.js",
     "backend": "cd backend && npm start",
     "frontend": "cd frontend && npm run dev",
