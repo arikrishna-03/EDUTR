@@ -1,4 +1,5 @@
 {
+  "framework": "vite",
   "buildCommand": "node build-root.js",
   "outputDirectory": "dist",
   "rewrites": [
