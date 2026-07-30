@@ -121,12 +121,17 @@ const Login = () => {
           setShowMentorIdModal(true);
         }
       } else {
-        // If popup was blocked or unconfigured, allow personal Google account entry
-        setShowGoogleAccountModal(true);
+        if (res.code === 'auth/popup-closed-by-user') {
+          setAuthError('Google Sign-In window was closed before completing login.');
+        } else if (res.code === 'auth/popup-blocked') {
+          setShowGoogleAccountModal(true);
+        } else {
+          setAuthError(res.error || 'Google Sign-In failed. Please try again.');
+        }
       }
     } catch (err) {
       console.error("Firebase Google popup error:", err);
-      setShowGoogleAccountModal(true);
+      setAuthError("Google Sign-In error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -348,7 +353,7 @@ const Login = () => {
             type="button"
             onClick={handleGoogleClick}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 bg-white/10 text-white font-medium py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-70"
+            className="w-full flex items-center justify-center gap-2 bg-white/10 text-white font-medium py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-70 cursor-pointer"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -368,8 +373,18 @@ const Login = () => {
                 fill="#EA4335"
               />
             </svg>
-            Google
+            Sign In with Google Account
           </button>
+
+          <div className="text-center mt-2">
+            <button
+              type="button"
+              onClick={() => setShowGoogleAccountModal(true)}
+              className="text-xs text-white/60 hover:text-white underline cursor-pointer"
+            >
+              Popup blocked? Enter email manually
+            </button>
+          </div>
         </form>
 
         <p className="text-center mt-6 text-purple-100 text-sm">
