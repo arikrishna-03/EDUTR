@@ -13,6 +13,9 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
+  const [authMode, setAuthMode] = useState('signup'); // 'signin' or 'signup'
+  const [fullName, setFullName] = useState('');
+
   // State for Google Login Interception & Personal Account Modal
   const [showMentorIdModal, setShowMentorIdModal] = useState(false);
   const [showGoogleAccountModal, setShowGoogleAccountModal] = useState(false);
@@ -34,7 +37,7 @@ const Login = () => {
 
       if (res.success && res.user) {
         if (role === 'mentor') {
-          const userName = res.user?.name || (email ? email.split('@')[0] : 'Dr. Sarah Wilson');
+          const userName = fullName.trim() || res.user?.name || (email ? email.split('@')[0] : 'Dr. Sarah Wilson');
           localStorage.setItem(
             'currentUser',
             JSON.stringify({
@@ -49,7 +52,7 @@ const Login = () => {
           if (mentorId.trim()) {
             const existingStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
             const studentEmail = email || 'student@example.com';
-            const studentName = res.user?.name || studentEmail.split('@')[0];
+            const studentName = fullName.trim() || res.user?.name || studentEmail.split('@')[0];
 
             const newStudent = {
               id: res.user?.uid || Date.now().toString(),
@@ -246,13 +249,19 @@ const Login = () => {
 
       {/* Main Login Card */}
       <div className="relative z-10 w-full max-w-md p-8 bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 transition-all duration-300 min-h-[600px] flex flex-col justify-center">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Welcome Back</h1>
-          <p className="text-purple-100">Sign in to continue to EduTracker</p>
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-white mb-1 tracking-tight">
+            {authMode === 'signin' ? 'Welcome Back' : 'Create Account'}
+          </h1>
+          <p className="text-purple-100 text-xs">
+            {authMode === 'signin'
+              ? 'Sign in to continue to EduTracker'
+              : 'Sign up to get started with EduTracker'}
+          </p>
         </div>
 
         {/* Role Toggle */}
-        <div className="flex bg-black/20 p-1 rounded-xl mb-6 relative">
+        <div className="flex bg-black/20 p-1 rounded-xl mb-5 relative">
           <div
             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-lg transition-all duration-300 ease-out ${
               role === 'mentor' ? 'left-[calc(50%+2px)]' : 'left-1'
@@ -264,7 +273,7 @@ const Login = () => {
               setRole('student');
               setAuthError('');
             }}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-colors z-10 ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors z-10 cursor-pointer ${
               role === 'student' ? 'text-purple-600' : 'text-white/80 hover:text-white'
             }`}
           >
@@ -277,7 +286,7 @@ const Login = () => {
               setRole('mentor');
               setAuthError('');
             }}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-colors z-10 ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors z-10 cursor-pointer ${
               role === 'mentor' ? 'text-purple-600' : 'text-white/80 hover:text-white'
             }`}
           >
@@ -292,60 +301,105 @@ const Login = () => {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-4">
+          {authMode === 'signup' && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="block text-sm font-medium text-white/90 mb-1.5">Full Name</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
+                placeholder={role === 'mentor' ? 'Dr. Sarah Wilson' : 'Alex Johnson'}
+                required
+              />
+            </div>
+          )}
+
           <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">Email Address</label>
+            <label className="block text-sm font-medium text-white/90 mb-1.5">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
               placeholder="name@college.edu"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/90 mb-2">Password</label>
+            <label className="block text-sm font-medium text-white/90 mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
               placeholder="••••••••"
             />
           </div>
 
           {role === 'student' && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-              <label className="block text-sm font-medium text-white/90 mb-2">Mentor ID</label>
+              <label className="block text-sm font-medium text-white/90 mb-1.5">Mentor ID</label>
               <input
                 type="text"
                 value={mentorId}
                 onChange={(e) => setMentorId(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
                 placeholder="Enter your assigned Mentor ID"
               />
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 bg-white text-purple-600 font-bold py-4 rounded-xl hover:bg-purple-50 transition-colors shadow-lg group disabled:opacity-70"
-          >
-            {isLoading ? (
-              <Loader2 size={20} className="animate-spin text-purple-600" />
-            ) : (
-              <>
-                Sign In
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <button
+              type={authMode === 'signin' ? 'submit' : 'button'}
+              onClick={() => {
+                if (authMode !== 'signin') {
+                  setAuthMode('signin');
+                  setAuthError('');
+                }
+              }}
+              disabled={isLoading}
+              className={`flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold transition-all shadow-lg group disabled:opacity-70 cursor-pointer text-sm ${
+                authMode === 'signin'
+                  ? 'bg-white text-purple-600 hover:bg-purple-50'
+                  : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+              }`}
+            >
+              {isLoading && authMode === 'signin' ? (
+                <Loader2 size={20} className="animate-spin text-purple-600" />
+              ) : (
+                'Sign In'
+              )}
+            </button>
 
-          <div className="relative flex py-2 items-center">
+            <button
+              type={authMode === 'signup' ? 'submit' : 'button'}
+              onClick={() => {
+                if (authMode !== 'signup') {
+                  setAuthMode('signup');
+                  setAuthError('');
+                }
+              }}
+              disabled={isLoading}
+              className={`flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold transition-all shadow-lg group disabled:opacity-70 cursor-pointer text-sm ${
+                authMode === 'signup'
+                  ? 'bg-white text-purple-600 hover:bg-purple-50'
+                  : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+              }`}
+            >
+              {isLoading && authMode === 'signup' ? (
+                <Loader2 size={20} className="animate-spin text-purple-600" />
+              ) : (
+                'Sign Up'
+              )}
+            </button>
+          </div>
+
+          <div className="relative flex py-1 items-center">
             <div className="flex-grow border-t border-white/20"></div>
-            <span className="flex-shrink-0 mx-4 text-white/60 text-sm">Or continue with</span>
+            <span className="flex-shrink-0 mx-4 text-white/60 text-xs">Or continue with</span>
             <div className="flex-grow border-t border-white/20"></div>
           </div>
 
@@ -353,7 +407,7 @@ const Login = () => {
             type="button"
             onClick={handleGoogleClick}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 bg-white/10 text-white font-medium py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-70 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-white/10 text-white font-medium py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-70 cursor-pointer text-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -375,23 +429,32 @@ const Login = () => {
             </svg>
             Sign In with Google Account
           </button>
-
-          <div className="text-center mt-2">
-            <button
-              type="button"
-              onClick={() => setShowGoogleAccountModal(true)}
-              className="text-xs text-white/60 hover:text-white underline cursor-pointer"
-            >
-              Popup blocked? Enter email manually
-            </button>
-          </div>
         </form>
 
-        <p className="text-center mt-6 text-purple-100 text-sm">
-          Don't have an account?{' '}
-          <a href="#" className="text-white font-semibold hover:underline">
-            Contact Admin
-          </a>
+        <p className="text-center mt-5 text-purple-100 text-sm">
+          {authMode === 'signin' ? (
+            <>
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setAuthMode('signup')}
+                className="text-white font-semibold hover:underline cursor-pointer"
+              >
+                Sign Up
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setAuthMode('signin')}
+                className="text-white font-semibold hover:underline cursor-pointer"
+              >
+                Sign In
+              </button>
+            </>
+          )}
         </p>
       </div>
 
