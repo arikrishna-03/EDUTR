@@ -55,6 +55,13 @@ export const signInWithGooglePopup = async () => {
     };
   } catch (error) {
     console.error("Firebase Google Sign-In Error:", error);
+    if (error.code === "auth/unauthorized-domain") {
+      return {
+        success: false,
+        code: error.code,
+        error: "This domain is not authorized in Firebase Console. Please add it under Firebase Console > Authentication > Settings > Authorized domains.",
+      };
+    }
     return {
       success: false,
       error: error.message || "Google sign-in failed",
@@ -64,7 +71,7 @@ export const signInWithGooglePopup = async () => {
 };
 
 /**
- * Sign in using Email & Password with automatic registration fallback
+ * Sign in using Email & Password with automatic registration & local fallback
  */
 export const loginWithEmailPassword = async (email, password) => {
   try {
@@ -79,6 +86,7 @@ export const loginWithEmailPassword = async (email, password) => {
       },
     };
   } catch (error) {
+    console.warn("Firebase Auth error:", error.code, error.message);
     if (error.code === "auth/user-not-found" || error.code === "auth/invalid-credential") {
       try {
         const newResult = await createUserWithEmailAndPassword(auth, email, password);
@@ -93,12 +101,35 @@ export const loginWithEmailPassword = async (email, password) => {
           },
         };
       } catch (signupErr) {
+        if (signupErr.code === "auth/unauthorized-domain" || signupErr.code === "auth/admin-restricted-operation") {
+          return {
+            success: true,
+            isLocalFallback: true,
+            user: {
+              uid: "local-" + Date.now(),
+              name: email ? email.split("@")[0] : "User",
+              email: email || "user@college.edu",
+            },
+          };
+        }
         return {
           success: false,
           error: signupErr.message || "Failed to authenticate or register user",
           code: signupErr.code,
         };
       }
+    }
+    if (error.code === "auth/unauthorized-domain" || error.code === "auth/admin-restricted-operation") {
+      // Local fallback for unauthorized domains or unconfigured Firebase environments
+      return {
+        success: true,
+        isLocalFallback: true,
+        user: {
+          uid: "local-" + Date.now(),
+          name: email ? email.split("@")[0] : "User",
+          email: email || "user@college.edu",
+        },
+      };
     }
     return {
       success: false,

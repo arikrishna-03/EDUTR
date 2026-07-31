@@ -297,7 +297,9 @@ const Login = () => {
 
         {authError && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-100 text-sm text-center">
-            {authError}
+            {authError.includes('auth/unauthorized-domain')
+              ? 'This domain is not authorized in Firebase Console. Go to Firebase Console > Authentication > Settings > Authorized Domains to add it.'
+              : authError}
           </div>
         )}
 
