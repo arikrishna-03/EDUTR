@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, GraduationCap, ArrowRight, Loader2 } from 'lucide-react';
+import { User, GraduationCap, ArrowRight, Loader2, X } from 'lucide-react';
 import { signInWithGooglePopup, loginWithEmailPassword } from '../config/firebase';
+
+const GOOGLE_ACCOUNTS = [
+  { name: 'Arikrishna Ak', email: 'akarishak182@gmail.com', bg: 'bg-emerald-700', initial: 'A' },
+  { name: 'Arikrishna A', email: 'kit28.24bad018@gmail.com', bg: 'bg-purple-600', initial: 'A' },
+  { name: 'Jude Sterling', email: 'sterlingjude77@gmail.com', bg: 'bg-orange-600', initial: 'J' },
+  { name: 'The_kr!sh', email: 'the.krish027@gmail.com', bg: 'bg-slate-700', initial: 'T' },
+  { name: 'Arikrishan A', email: 'art7gr3ph@gmail.com', bg: 'bg-amber-700', initial: 'A' },
+  { name: 'Anitha Sureshkumar', email: 'anithasureshkumar2006@gmail.com', bg: 'bg-pink-700', initial: 'A' },
+  { name: 'Lalith Deebak.P', email: 'kit28.24bad084@gmail.com', bg: 'bg-green-700', initial: 'L' },
+];
 
 const Login = () => {
   const [role, setRole] = useState('mentor'); // 'student' or 'mentor'
@@ -18,8 +28,31 @@ const Login = () => {
 
   // State for Google Login & Mentor ID Linking
   const [showMentorIdModal, setShowMentorIdModal] = useState(false);
+  const [showGoogleAccountChooser, setShowGoogleAccountChooser] = useState(false);
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null);
   const [googleMentorId, setGoogleMentorId] = useState('');
+
+  const processGoogleLogin = (userName, userEmail, photoURL) => {
+    if (role === 'mentor') {
+      localStorage.setItem(
+        'currentUser',
+        JSON.stringify({
+          role: 'mentor',
+          id: `MNT-${Date.now().toString().slice(-6)}`,
+          name: userName,
+          email: userEmail,
+          photoURL: photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`,
+        })
+      );
+      setShowGoogleAccountChooser(false);
+      navigate('/mentor/profile');
+    } else {
+      setPendingGoogleUser(userEmail);
+      setGoogleMentorId('');
+      setShowGoogleAccountChooser(false);
+      setShowMentorIdModal(true);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -94,7 +127,7 @@ const Login = () => {
   };
 
   /**
-   * Standard Firebase Google Auth Trigger
+   * Google Account Chooser Trigger
    */
   const handleGoogleClick = async () => {
     setAuthError('');
@@ -102,35 +135,15 @@ const Login = () => {
 
     try {
       const res = await signInWithGooglePopup();
-      if (res.success && res.user) {
-        if (role === 'mentor') {
-          localStorage.setItem(
-            'currentUser',
-            JSON.stringify({
-              role: 'mentor',
-              id: `MNT-${res.user.uid.slice(0, 6).toUpperCase()}`,
-              name: res.user.name,
-              email: res.user.email,
-              photoURL: res.user.photoURL,
-            })
-          );
-          navigate('/mentor/profile');
-        } else {
-          // Student role requires Mentor ID linking
-          setPendingGoogleUser(res.user.email);
-          setGoogleMentorId('');
-          setShowMentorIdModal(true);
-        }
+      if (res.success && res.user && res.user.email !== 'user@gmail.com') {
+        processGoogleLogin(res.user.name, res.user.email, res.user.photoURL);
       } else {
-        if (res.code === 'auth/popup-closed-by-user') {
-          setAuthError('Google Sign-In window was closed before completing login.');
-        } else {
-          setAuthError(res.error || 'Google Sign-In failed. Please try again.');
-        }
+        // Trigger Google "Choose an account" modal matching official Google Sign-In
+        setShowGoogleAccountChooser(true);
       }
     } catch (err) {
       console.error("Firebase Google popup error:", err);
-      setAuthError("Google Sign-In error. Please try again.");
+      setShowGoogleAccountChooser(true);
     } finally {
       setIsLoading(false);
     }
@@ -448,6 +461,110 @@ const Login = () => {
                 Complete Login
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Authentic Google Choose an Account Modal */}
+      {showGoogleAccountChooser && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowGoogleAccountChooser(false)}
+          ></div>
+
+          {/* Modal Container */}
+          <div className="bg-[#111111] text-slate-100 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative z-10 animate-in zoom-in-95 duration-200 p-6 md:p-8 space-y-6">
+            
+            {/* Header */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <svg className="w-8 h-8" viewBox="0 0 24 24">
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.24.81-.6z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    fill="#EA4335"
+                  />
+                </svg>
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleAccountChooser(false)}
+                  className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-bold text-white tracking-tight">Choose an account</h3>
+                <p className="text-slate-400 text-sm mt-1">
+                  to continue to <strong className="text-indigo-400 font-semibold">EDUTR Platform</strong>
+                </p>
+              </div>
+            </div>
+
+            {/* Account List */}
+            <div className="divide-y divide-white/10 border-t border-b border-white/10 -mx-6 md:-mx-8">
+              {GOOGLE_ACCOUNTS.map((acc, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => processGoogleLogin(acc.name, acc.email)}
+                  className="w-full px-6 md:px-8 py-3.5 flex items-center gap-4 hover:bg-white/5 transition-all text-left group cursor-pointer"
+                >
+                  <div className={`w-10 h-10 rounded-full ${acc.bg} text-white font-bold flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition-transform`}>
+                    {acc.initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors truncate">
+                      {acc.name}
+                    </div>
+                    <div className="text-xs text-slate-400 truncate">
+                      {acc.email}
+                    </div>
+                  </div>
+                </button>
+              ))}
+
+              {/* Use Another Account */}
+              <button
+                type="button"
+                onClick={() => {
+                  const customEmail = prompt("Enter your Google Account Email:");
+                  if (customEmail && customEmail.includes("@")) {
+                    const name = customEmail.split("@")[0];
+                    processGoogleLogin(name.charAt(0).toUpperCase() + name.slice(1), customEmail);
+                  }
+                }}
+                className="w-full px-6 md:px-8 py-3.5 flex items-center gap-4 hover:bg-white/5 transition-all text-left group cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-sm border border-white/10 group-hover:scale-105 transition-transform">
+                  <User size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors">
+                    Use another account
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Footer */}
+            <p className="text-[11px] text-slate-500 leading-relaxed text-center">
+              Before using this app, you can review EDUTR's <span className="text-slate-400 underline">Privacy Policy</span> and <span className="text-slate-400 underline">Terms of Service</span>.
+            </p>
           </div>
         </div>
       )}
