@@ -477,17 +477,17 @@ const Login = () => {
         </div>
       )}
 
-      {/* Authentic Google Choose an Account Modal */}
+      {/* Authentic Google Choose an Account Modal (Official Google Theme) */}
       {showGoogleAccountChooser && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowGoogleAccountChooser(false)}
           ></div>
 
           {/* Modal Container */}
-          <div className="bg-[#111111] text-slate-100 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative z-10 animate-in zoom-in-95 duration-200 p-6 md:p-8 space-y-6">
+          <div className="bg-white text-slate-800 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 p-6 md:p-8 space-y-6">
             
             {/* Header */}
             <div className="space-y-4">
@@ -513,37 +513,37 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowGoogleAccountChooser(false)}
-                  className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               <div>
-                <h3 className="text-2xl font-bold text-white tracking-tight">Choose an account</h3>
-                <p className="text-slate-400 text-sm mt-1">
-                  to continue to <strong className="text-indigo-400 font-semibold">EDUTR Platform</strong>
+                <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Choose an account</h3>
+                <p className="text-slate-500 text-sm mt-1">
+                  to continue to <strong className="text-blue-600 font-semibold">EDUTR Platform</strong>
                 </p>
               </div>
             </div>
 
             {/* Account List */}
-            <div className="divide-y divide-white/10 border-t border-b border-white/10 -mx-6 md:-mx-8">
+            <div className="divide-y divide-slate-100 border-t border-b border-slate-100 -mx-6 md:-mx-8">
               {GOOGLE_ACCOUNTS.map((acc, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => processGoogleLogin(acc.name, acc.email)}
-                  className="w-full px-6 md:px-8 py-3.5 flex items-center gap-4 hover:bg-white/5 transition-all text-left group cursor-pointer"
+                  className="w-full px-6 md:px-8 py-3.5 flex items-center gap-4 hover:bg-slate-50 transition-all text-left group cursor-pointer"
                 >
-                  <div className={`w-10 h-10 rounded-full ${acc.bg} text-white font-bold flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition-transform`}>
+                  <div className={`w-10 h-10 rounded-full ${acc.bg} text-white font-bold flex items-center justify-center text-sm shadow-sm group-hover:scale-105 transition-transform`}>
                     {acc.initial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors truncate">
+                    <div className="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors truncate">
                       {acc.name}
                     </div>
-                    <div className="text-xs text-slate-400 truncate">
+                    <div className="text-xs text-slate-500 truncate">
                       {acc.email}
                     </div>
                   </div>
@@ -560,13 +560,13 @@ const Login = () => {
                     processGoogleLogin(name.charAt(0).toUpperCase() + name.slice(1), customEmail);
                   }
                 }}
-                className="w-full px-6 md:px-8 py-3.5 flex items-center gap-4 hover:bg-white/5 transition-all text-left group cursor-pointer"
+                className="w-full px-6 md:px-8 py-3.5 flex items-center gap-4 hover:bg-slate-50 transition-all text-left group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-sm border border-white/10 group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-sm border border-slate-200 group-hover:scale-105 transition-transform">
                   <User size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors">
+                  <div className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
                     Use another account
                   </div>
                 </div>
@@ -574,8 +574,8 @@ const Login = () => {
             </div>
 
             {/* Footer */}
-            <p className="text-[11px] text-slate-500 leading-relaxed text-center">
-              Before using this app, you can review EDUTR's <span className="text-slate-400 underline">Privacy Policy</span> and <span className="text-slate-400 underline">Terms of Service</span>.
+            <p className="text-[11px] text-slate-400 leading-relaxed text-center">
+              Before using this app, you can review EDUTR's <span className="text-blue-600 underline">Privacy Policy</span> and <span className="text-blue-600 underline">Terms of Service</span>.
             </p>
           </div>
         </div>
