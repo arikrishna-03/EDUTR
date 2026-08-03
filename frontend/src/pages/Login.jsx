@@ -16,12 +16,10 @@ const Login = () => {
   const [authMode, setAuthMode] = useState('signup'); // 'signin' or 'signup'
   const [fullName, setFullName] = useState('');
 
-  // State for Google Login Interception & Personal Account Modal
+  // State for Google Login & Mentor ID Linking
   const [showMentorIdModal, setShowMentorIdModal] = useState(false);
-  const [showGoogleAccountModal, setShowGoogleAccountModal] = useState(false);
   const [pendingGoogleUser, setPendingGoogleUser] = useState(null);
   const [googleMentorId, setGoogleMentorId] = useState('');
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -96,7 +94,7 @@ const Login = () => {
   };
 
   /**
-   * Firebase Google Auth Trigger
+   * Standard Firebase Google Auth Trigger
    */
   const handleGoogleClick = async () => {
     setAuthError('');
@@ -126,8 +124,6 @@ const Login = () => {
       } else {
         if (res.code === 'auth/popup-closed-by-user') {
           setAuthError('Google Sign-In window was closed before completing login.');
-        } else if (res.code === 'auth/popup-blocked' || res.code === 'auth/unauthorized-domain') {
-          setShowGoogleAccountModal(true);
         } else {
           setAuthError(res.error || 'Google Sign-In failed. Please try again.');
         }
@@ -137,70 +133,6 @@ const Login = () => {
       setAuthError("Google Sign-In error. Please try again.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handlePersonalGoogleSubmit = (e) => {
-    if (e) e.preventDefault();
-    const targetEmail = (customGoogleEmail || pendingGoogleUser || '').trim();
-
-    if (!targetEmail || !targetEmail.includes('@')) {
-      alert("Please enter a valid Google email address");
-      return;
-    }
-
-    if (role === 'mentor') {
-      const name = targetEmail.split('@')[0];
-      const cleanName = name.charAt(0).toUpperCase() + name.slice(1);
-      localStorage.setItem(
-        'currentUser',
-        JSON.stringify({
-          role: 'mentor',
-          id: `MNT-${Date.now().toString().slice(-6)}`,
-          name: cleanName,
-          email: targetEmail,
-        })
-      );
-      setShowGoogleAccountModal(false);
-      navigate('/mentor/profile');
-    } else {
-      if (!googleMentorId.trim()) {
-        alert("Please enter your assigned Mentor ID");
-        return;
-      }
-
-      const existingStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-      const studentName = targetEmail.split('@')[0];
-      const cleanStudentName = studentName.charAt(0).toUpperCase() + studentName.slice(1);
-
-      const newStudent = {
-        id: Date.now().toString(),
-        name: cleanStudentName,
-        email: targetEmail,
-        mentorId: googleMentorId.trim().toUpperCase(),
-        joinedAt: new Date().toLocaleDateString(),
-      };
-
-      const isDuplicate = existingStudents.some(
-        (s) => s.email === newStudent.email && s.mentorId === googleMentorId.trim().toUpperCase()
-      );
-      if (!isDuplicate) {
-        localStorage.setItem('linkedStudents', JSON.stringify([...existingStudents, newStudent]));
-      }
-
-      localStorage.setItem(
-        'currentUser',
-        JSON.stringify({
-          role: 'student',
-          id: newStudent.id,
-          name: newStudent.name,
-          mentorId: googleMentorId.trim().toUpperCase(),
-        })
-      );
-
-      setShowGoogleAccountModal(false);
-      setShowMentorIdModal(false);
-      navigate('/student/dashboard');
     }
   };
 
@@ -516,102 +448,6 @@ const Login = () => {
                 Complete Login
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Personal Google Account Login Modal */}
-      {showGoogleAccountModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowGoogleAccountModal(false)}
-          ></div>
-
-          <div className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 p-6">
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3 border border-blue-100">
-                <svg className="w-6 h-6" viewBox="0 0 24 24">
-                  <path
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.24.81-.6z"
-                    fill="#FBBC05"
-                  />
-                  <path
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    fill="#EA4335"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800">Google Account Sign-In</h3>
-              <p className="text-slate-500 text-xs mt-1">
-                Enter your personal Google account email on this device to continue
-              </p>
-            </div>
-
-            <form onSubmit={handlePersonalGoogleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                  Personal Google Email
-                </label>
-                <input
-                  type="email"
-                  value={customGoogleEmail}
-                  onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium text-sm"
-                  placeholder="your.email@gmail.com"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              {role === 'student' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                    Assigned Mentor ID
-                  </label>
-                  <input
-                    type="text"
-                    value={googleMentorId}
-                    onChange={(e) => setGoogleMentorId(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-medium text-sm"
-                    placeholder="e.g. MNT-2024-001"
-                    required
-                  />
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer text-sm"
-              >
-                Sign In as {role === 'mentor' ? 'Mentor' : 'Student'}
-              </button>
-
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={handleGoogleClick}
-                  className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer"
-                >
-                  ↻ Retry Browser Google Popup
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowGoogleAccountModal(false)}
-                  className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
