@@ -1,13 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
+import LogoutModal from "./LogoutModal";
 
 export default function Topbar() {
-  const handleLogout = () => {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleConfirmLogout = () => {
     localStorage.clear();
-    window.location.href = "/";
+    setShowLogoutModal(false);
+    window.location.href = "/login";
   };
+
   return (
-    <header style={{ height: 64, background: "rgba(0,0,0,0.25)", display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 20px" }}>
-      <button onClick={handleLogout} style={{ padding: "8px 12px", borderRadius: 8 }}>Logout</button>
-    </header>
+    <>
+      <header style={{ height: 64, background: "rgba(0,0,0,0.25)", display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 20px" }}>
+        <button onClick={() => setShowLogoutModal(true)} style={{ padding: "8px 12px", borderRadius: 8 }} className="cursor-pointer">Logout</button>
+      </header>
+
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+      />
+    </>
   );
 }

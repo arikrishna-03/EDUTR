@@ -6,13 +6,16 @@ import {
 } from 'lucide-react';
 import DashboardHeader from '../../components/DashboardHeader';
 import { PlatformSettingsPanel } from '../StudentPlatformSettings';
+import LogoutModal from '../../components/LogoutModal';
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState('general');
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogout = () => {
+    const handleConfirmLogout = () => {
         localStorage.removeItem('currentUser');
+        setShowLogoutModal(false);
         navigate('/login');
     };
 
@@ -47,8 +50,8 @@ const Settings = () => {
                             ))}
                             <hr className="border-white/5 my-2" />
                             <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                                onClick={() => setShowLogoutModal(true)}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
                             >
                                 <LogOut size={18} />
                                 Logout
@@ -206,6 +209,12 @@ const Settings = () => {
 
                 </div>
             </div>
+
+            <LogoutModal
+                isOpen={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
+                onConfirm={handleConfirmLogout}
+            />
         </div>
     );
 };
