@@ -51,7 +51,12 @@ const Profile = () => {
     useEffect(() => {
         const savedProfile = localStorage.getItem('mentorProfile');
         if (savedProfile) {
-            setFormData(JSON.parse(savedProfile));
+            const parsed = JSON.parse(savedProfile);
+            setFormData(parsed);
+            const profilesMap = JSON.parse(localStorage.getItem('mentorProfilesMap') || '{}');
+            const mId = parsed.mentorId || 'MNT-2024-001';
+            profilesMap[mId] = parsed;
+            localStorage.setItem('mentorProfilesMap', JSON.stringify(profilesMap));
             return;
         }
 
@@ -75,8 +80,30 @@ const Profile = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleAvatarChange = () => {
+        const seeds = ['Sarah', 'Felix', 'Alexander', 'Sophia', 'Dumbledore', 'Minerva', 'Oliver'];
+        const currentSeedIndex = seeds.findIndex(s => formData.avatar?.includes(s));
+        const nextSeed = seeds[(currentSeedIndex + 1) % seeds.length];
+        const newAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${nextSeed}&backgroundColor=b6e3f4`;
+        
+        const updated = { ...formData, avatar: newAvatar };
+        setFormData(updated);
+        localStorage.setItem('mentorProfile', JSON.stringify(updated));
+        const profilesMap = JSON.parse(localStorage.getItem('mentorProfilesMap') || '{}');
+        const mId = updated.mentorId || 'MNT-2024-001';
+        profilesMap[mId] = updated;
+        localStorage.setItem('mentorProfilesMap', JSON.stringify(profilesMap));
+        window.dispatchEvent(new Event('mentorProfileUpdated'));
+    };
+
     const handleSave = () => {
         localStorage.setItem('mentorProfile', JSON.stringify(formData));
+        
+        const profilesMap = JSON.parse(localStorage.getItem('mentorProfilesMap') || '{}');
+        const mId = formData.mentorId || 'MNT-2024-001';
+        profilesMap[mId] = formData;
+        localStorage.setItem('mentorProfilesMap', JSON.stringify(profilesMap));
+
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
         if (currentUser.role === 'mentor') {
             localStorage.setItem('currentUser', JSON.stringify({
@@ -85,6 +112,8 @@ const Profile = () => {
                 email: formData.email
             }));
         }
+
+        window.dispatchEvent(new Event('mentorProfileUpdated'));
         setIsEditing(false);
     };
 
@@ -109,7 +138,11 @@ const Profile = () => {
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        <button className="absolute bottom-2 right-2 p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100">
+                        <button 
+                            onClick={handleAvatarChange}
+                            title="Change Avatar Picture"
+                            className="absolute bottom-2 right-2 p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100 cursor-pointer"
+                        >
                             <Camera size={16} />
                         </button>
                     </div>

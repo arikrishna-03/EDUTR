@@ -7,48 +7,29 @@ import { Edit2, X, MapPin, Phone, Building, User, Award, Trophy } from 'lucide-r
 
 export default function StudentHome() {
     const [profile, setProfile] = useState(null);
-    const [mentorId, setMentorId] = useState(null);
+    const [mentorId, setMentorId] = useState('MNT-2024-001');
 
     // Change Mentor Modal State
     const [showMentorModal, setShowMentorModal] = useState(false);
     const [tempMentorId, setTempMentorId] = useState('');
+    const [mentorDetails, setMentorDetails] = useState({
+        name: 'Dr. Sarah Wilson',
+        dept: 'Computer Science',
+        room: 'Block A, Room 304',
+        phone: '+1 (555) 123-4567',
+        designation: 'Senior Professor',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=b6e3f4',
+        availability: 'Available'
+    });
 
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        if (user.mentorId) {
-            setMentorId(user.mentorId);
-            setTempMentorId(user.mentorId);
-        }
-    }, []);
-
-    const handleUpdateMentor = () => {
-        if (!tempMentorId.trim()) return;
-
-        // Update local storage
-        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const updatedUser = { ...user, mentorId: tempMentorId.trim().toUpperCase() };
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-
-        // Update linkedStudents if found
-        const linkedStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-        const updatedStudents = linkedStudents.map(s =>
-            (s.email === user.email || s.id === user.id) ? { ...s, mentorId: tempMentorId.trim().toUpperCase() } : s
-        );
-        localStorage.setItem('linkedStudents', JSON.stringify(updatedStudents));
-
-        // Update State
-        setMentorId(tempMentorId.trim().toUpperCase());
-        setShowMentorModal(false);
-    };
-
-    // Mock Mentor Database (Shared)
+    // Shared Mentor Defaults
     const MENTOR_DB = {
         'MENTOR123': {
             name: 'Prof. Albus Dumbledore',
             dept: 'Computer Science Dept',
             room: 'Room 305, Main Block',
             phone: '+91 98765 43210',
-            designation: 'Sr. Professor',
+            designation: 'Headmaster',
             avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dumbledore',
             availability: 'Available'
         },
@@ -72,14 +53,78 @@ export default function StudentHome() {
         }
     };
 
-    const mentorDetails = MENTOR_DB[mentorId] || {
-        name: 'Assigned Mentor',
-        dept: 'Department',
-        room: 'Campus',
-        phone: 'Contact Office',
-        designation: 'Faculty',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${mentorId || 'default'}`,
-        availability: 'Available'
+    const loadMentorInfo = () => {
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const currentMentorId = user.mentorId || mentorId || 'MNT-2024-001';
+        setMentorId(currentMentorId);
+        setTempMentorId(currentMentorId);
+
+        const savedProfilesMap = JSON.parse(localStorage.getItem('mentorProfilesMap') || '{}');
+        const savedSingleProfile = JSON.parse(localStorage.getItem('mentorProfile') || 'null');
+
+        let profileData = savedProfilesMap[currentMentorId];
+        if (!profileData && savedSingleProfile && (savedSingleProfile.mentorId === currentMentorId || currentMentorId === 'MNT-2024-001')) {
+            profileData = savedSingleProfile;
+        }
+
+        const staticData = MENTOR_DB[currentMentorId] || {
+            name: 'Assigned Mentor',
+            dept: 'Department',
+            room: 'Campus',
+            phone: 'Contact Office',
+            designation: 'Faculty',
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentMentorId || 'default'}`,
+            availability: 'Available'
+        };
+
+        if (profileData) {
+            setMentorDetails({
+                name: profileData.fullName || profileData.name || staticData.name,
+                dept: profileData.department || profileData.dept || staticData.dept,
+                room: profileData.location || profileData.room || staticData.room,
+                phone: profileData.phone || staticData.phone,
+                designation: profileData.role || profileData.designation || staticData.designation,
+                avatar: profileData.avatar || staticData.avatar,
+                availability: profileData.availability || staticData.availability || 'Available'
+            });
+        } else {
+            setMentorDetails(staticData);
+        }
+    };
+
+    useEffect(() => {
+        loadMentorInfo();
+
+        const handleUpdate = () => loadMentorInfo();
+        window.addEventListener('storage', handleUpdate);
+        window.addEventListener('mentorProfileUpdated', handleUpdate);
+
+        return () => {
+            window.removeEventListener('storage', handleUpdate);
+            window.removeEventListener('mentorProfileUpdated', handleUpdate);
+        };
+    }, []);
+
+    const handleUpdateMentor = () => {
+        if (!tempMentorId.trim()) return;
+
+        const newId = tempMentorId.trim().toUpperCase();
+        // Update local storage
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const updatedUser = { ...user, mentorId: newId };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+        // Update linkedStudents if found
+        const linkedStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+        const updatedStudents = linkedStudents.map(s =>
+            (s.email === user.email || s.id === user.id) ? { ...s, mentorId: newId } : s
+        );
+        localStorage.setItem('linkedStudents', JSON.stringify(updatedStudents));
+
+        // Update State
+        setMentorId(newId);
+        setShowMentorModal(false);
+        loadMentorInfo();
     };
 
     return (
