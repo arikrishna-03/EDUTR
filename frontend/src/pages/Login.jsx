@@ -126,7 +126,7 @@ const Login = () => {
       } else {
         if (res.code === 'auth/popup-closed-by-user') {
           setAuthError('Google Sign-In window was closed before completing login.');
-        } else if (res.code === 'auth/popup-blocked') {
+        } else if (res.code === 'auth/popup-blocked' || res.code === 'auth/unauthorized-domain') {
           setShowGoogleAccountModal(true);
         } else {
           setAuthError(res.error || 'Google Sign-In failed. Please try again.');
@@ -296,10 +296,24 @@ const Login = () => {
         </div>
 
         {authError && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-100 text-sm text-center">
-            {authError.includes('auth/unauthorized-domain')
-              ? 'This domain is not authorized in Firebase Console. Go to Firebase Console > Authentication > Settings > Authorized Domains to add it.'
-              : authError}
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-100 text-sm text-center flex flex-col items-center gap-2">
+            <span>
+              {authError.includes('auth/unauthorized-domain') || authError.includes('authorized in Firebase Console')
+                ? 'This domain is not authorized in Firebase Console.'
+                : authError}
+            </span>
+            {(authError.includes('auth/unauthorized-domain') || authError.includes('authorized in Firebase Console')) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthError('');
+                  setShowGoogleAccountModal(true);
+                }}
+                className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-semibold underline cursor-pointer transition-all"
+              >
+                Use Quick Account Sign-In
+              </button>
+            )}
           </div>
         )}
 
