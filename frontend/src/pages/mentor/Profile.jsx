@@ -5,6 +5,7 @@ import {
     Save, X, Award, BookOpen, Users, Pencil, Copy, Check
 } from 'lucide-react';
 import DashboardHeader from '../../components/DashboardHeader';
+import PhotoManagerModal from '../../components/PhotoManagerModal';
 
 const MENTOR_PROFILES = {
     'MNT-2024-001': {
@@ -39,6 +40,9 @@ const Profile = () => {
     const [darkMode, setDarkMode] = useState(true);
     const [formData, setFormData] = useState(DEFAULT_PROFILE);
     const [copied, setCopied] = useState(false);
+
+    // Photo Manager Modal State
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
 
     const handleCopyMentorId = () => {
         if (formData.mentorId) {
@@ -80,19 +84,16 @@ const Profile = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleAvatarChange = () => {
-        const seeds = ['Sarah', 'Felix', 'Alexander', 'Sophia', 'Dumbledore', 'Minerva', 'Oliver'];
-        const currentSeedIndex = seeds.findIndex(s => formData.avatar?.includes(s));
-        const nextSeed = seeds[(currentSeedIndex + 1) % seeds.length];
-        const newAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${nextSeed}&backgroundColor=b6e3f4`;
-        
+    const handleSavePhotoModal = (newAvatar) => {
         const updated = { ...formData, avatar: newAvatar };
         setFormData(updated);
+
         localStorage.setItem('mentorProfile', JSON.stringify(updated));
         const profilesMap = JSON.parse(localStorage.getItem('mentorProfilesMap') || '{}');
         const mId = updated.mentorId || 'MNT-2024-001';
         profilesMap[mId] = updated;
         localStorage.setItem('mentorProfilesMap', JSON.stringify(profilesMap));
+
         window.dispatchEvent(new Event('mentorProfileUpdated'));
     };
 
@@ -121,17 +122,12 @@ const Profile = () => {
         <div className="animate-in fade-in zoom-in duration-300 space-y-6">
             <DashboardHeader title="My Profile" />
 
-            {/* 1. Header Section */}
-            <div className="relative rounded-2xl overflow-hidden bg-[#1a1c23] border border-white/5 shadow-xl">
-                {/* Cover Image */}
-                <div className="h-48 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative">
-                    <div className="absolute inset-0 bg-black/10"></div>
-                </div>
-
-                <div className="px-8 pb-8 relative flex flex-col md:flex-row items-start md:items-end gap-6 -mt-12">
+            {/* 1. Header Section (Without Back Banner) */}
+            <div className="relative rounded-2xl overflow-hidden bg-[#1a1c23] border border-white/5 shadow-xl p-6 md:p-8">
+                <div className="flex flex-col md:flex-row items-center md:items-center gap-6">
                     {/* Avatar */}
-                    <div className="relative group">
-                        <div className="w-32 h-32 rounded-2xl border-4 border-[#1a1c23] overflow-hidden bg-slate-800 shadow-2xl">
+                    <div className="relative group flex-shrink-0">
+                        <div className="w-32 h-32 rounded-2xl border-2 border-white/10 overflow-hidden bg-slate-800 shadow-2xl">
                             <img
                                 src={formData.avatar}
                                 alt="Profile"
@@ -139,21 +135,21 @@ const Profile = () => {
                             />
                         </div>
                         <button 
-                            onClick={handleAvatarChange}
-                            title="Change Avatar Picture"
-                            className="absolute bottom-2 right-2 p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100 cursor-pointer"
+                            onClick={() => setShowPhotoModal(true)}
+                            title="Manage Profile Photo"
+                            className="absolute bottom-2 right-2 p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg opacity-90 group-hover:opacity-100 transition-all transform scale-95 group-hover:scale-100 cursor-pointer border border-white/20"
                         >
-                            <Camera size={16} />
+                            <Camera size={18} />
                         </button>
                     </div>
 
                     {/* Basic Info */}
-                    <div className="flex-1 pt-2 md:pt-0">
+                    <div className="flex-1 min-w-0 text-center md:text-left">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold text-white mb-1">{formData.fullName}</h1>
-                                <div className="flex items-center gap-3 text-slate-400 text-sm">
-                                    <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+                                <h1 className="text-3xl font-bold text-white mb-1 tracking-tight">{formData.fullName}</h1>
+                                <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-slate-400 text-sm">
+                                    <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
                                         {formData.role}
                                     </span>
                                     <span className="flex items-center gap-1">
@@ -163,7 +159,7 @@ const Profile = () => {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center gap-3">
                                 {/* Mentor ID Badge */}
                                 <div className="px-4 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 font-mono text-sm font-semibold flex items-center gap-2 shadow-inner">
                                     <Shield size={16} className="text-indigo-400" />
@@ -254,6 +250,14 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+
+            <PhotoManagerModal
+                isOpen={showPhotoModal}
+                onClose={() => setShowPhotoModal(false)}
+                currentAvatar={formData.avatar}
+                defaultAvatar={DEFAULT_PROFILE.avatar}
+                onSave={handleSavePhotoModal}
+            />
         </div>
     );
 };
