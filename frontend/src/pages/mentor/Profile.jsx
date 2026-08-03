@@ -194,127 +194,65 @@ const Profile = () => {
 
 
 
-            {/* 3. Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* Left Column: Personal Info */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-[#1a1c23] rounded-2xl border border-white/5 overflow-hidden">
-                        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                            <h3 className="font-semibold text-lg text-white">Personal Information</h3>
-                            {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setIsEditing(false)}
-                                        className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-xs border border-white/5 flex items-center gap-1.5 transition-colors cursor-pointer"
-                                    >
-                                        <X size={14} /> Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleSave}
-                                        className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
-                                    >
-                                        <Save size={14} /> Save Changes
-                                    </button>
-                                </div>
-                            ) : (
+            {/* 3. Main Content Section */}
+            <div className="w-full">
+                <div className="bg-[#1a1c23] rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                        <h3 className="font-semibold text-lg text-white">Personal Information</h3>
+                        {isEditing ? (
+                            <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => setIsEditing(true)}
-                                    title="Edit Personal Information"
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all cursor-pointer"
+                                    onClick={() => setIsEditing(false)}
+                                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-xs border border-white/5 flex items-center gap-1.5 transition-colors cursor-pointer"
                                 >
-                                    <Pencil size={18} />
+                                    <X size={14} /> Cancel
                                 </button>
+                                <button
+                                    onClick={handleSave}
+                                    className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                                >
+                                    <Save size={14} /> Save Changes
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                title="Edit Personal Information"
+                                className="p-2 rounded-lg bg-white/5 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all cursor-pointer"
+                            >
+                                <Pencil size={18} />
+                            </button>
+                        )}
+                    </div>
+                    <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormGroup label="Mentor ID" value={formData.mentorId} name="mentorId" icon={Shield} isEditing={false} onChange={() => { }} disabled />
+                            <FormGroup label="Full Name" value={formData.fullName} name="fullName" icon={User} isEditing={isEditing} onChange={handleInputChange} />
+                            <FormGroup label="Department" value={formData.department} name="department" icon={BookOpen} isEditing={isEditing} onChange={handleInputChange} />
+                            <FormGroup label="Email Address" value={formData.email} name="email" icon={Mail} isEditing={isEditing} onChange={handleInputChange} />
+                            <FormGroup label="Phone Number" value={formData.phone} name="phone" icon={Phone} isEditing={isEditing} onChange={handleInputChange} />
+                            <FormGroup label="Office Location" value={formData.location} name="location" icon={MapPin} isEditing={isEditing} onChange={handleInputChange} />
+                            <FormGroup label="Join Date" value="August 24, 2020" name="joinDate" icon={Calendar} isEditing={false} onChange={() => { }} disabled />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Bio</label>
+                            {isEditing ? (
+                                <textarea
+                                    name="bio"
+                                    value={formData.bio}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    className="w-full bg-[#13151b] border border-white/10 rounded-xl p-4 text-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm leading-relaxed resize-none"
+                                />
+                            ) : (
+                                <p className="text-slate-300 text-sm leading-relaxed bg-[#13151b] p-4 rounded-xl border border-transparent">
+                                    {formData.bio}
+                                </p>
                             )}
                         </div>
-                        <div className="p-6 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormGroup label="Mentor ID" value={formData.mentorId} name="mentorId" icon={Shield} isEditing={false} onChange={() => { }} disabled />
-                                <FormGroup label="Full Name" value={formData.fullName} name="fullName" icon={User} isEditing={isEditing} onChange={handleInputChange} />
-                                <FormGroup label="Department" value={formData.department} name="department" icon={BookOpen} isEditing={isEditing} onChange={handleInputChange} />
-                                <FormGroup label="Email Address" value={formData.email} name="email" icon={Mail} isEditing={isEditing} onChange={handleInputChange} />
-                                <FormGroup label="Phone Number" value={formData.phone} name="phone" icon={Phone} isEditing={isEditing} onChange={handleInputChange} />
-                                <FormGroup label="Office Location" value={formData.location} name="location" icon={MapPin} isEditing={isEditing} onChange={handleInputChange} />
-                                <FormGroup label="Join Date" value="August 24, 2020" name="joinDate" icon={Calendar} isEditing={false} onChange={() => { }} disabled />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Bio</label>
-                                {isEditing ? (
-                                    <textarea
-                                        name="bio"
-                                        value={formData.bio}
-                                        onChange={handleInputChange}
-                                        rows={4}
-                                        className="w-full bg-[#13151b] border border-white/10 rounded-xl p-4 text-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm leading-relaxed resize-none"
-                                    />
-                                ) : (
-                                    <p className="text-slate-300 text-sm leading-relaxed bg-[#13151b] p-4 rounded-xl border border-transparent">
-                                        {formData.bio}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 </div>
-
-                {/* Right Column: Settings */}
-                <div className="space-y-6">
-                    <div className="bg-[#1a1c23] rounded-2xl border border-white/5 overflow-hidden">
-                        <div className="p-6 border-b border-white/5">
-                            <h3 className="font-semibold text-lg text-white">Account Settings</h3>
-                        </div>
-                        <div className="p-6 space-y-6">
-
-                            {/* Toggle Item */}
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-                                        <Bell size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-white font-medium text-sm">Notifications</p>
-                                        <p className="text-slate-500 text-xs">Email alerts & updates</p>
-                                    </div>
-                                </div>
-                                <ToggleSwitch checked={notifications} onChange={() => setNotifications(!notifications)} />
-                            </div>
-
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                                        <Moon size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-white font-medium text-sm">Dark Mode</p>
-                                        <p className="text-slate-500 text-xs">Adjust app appearance</p>
-                                    </div>
-                                </div>
-                                <ToggleSwitch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-                            </div>
-
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center">
-                                        <Lock size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-white font-medium text-sm">2FA Security</p>
-                                        <p className="text-slate-500 text-xs">Extra layer of protection</p>
-                                    </div>
-                                </div>
-                                <button className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">Setup</button>
-                            </div>
-
-                        </div>
-                        <div className="p-4 bg-[#13151b]/50 border-t border-white/5">
-                            <button className="w-full py-2.5 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 text-sm font-medium transition-colors">
-                                Sign Out All Devices
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     );
