@@ -55,17 +55,6 @@ export const signInWithGooglePopup = async () => {
     };
   } catch (error) {
     console.error("Firebase Google Sign-In Error:", error);
-    if (error.code === "auth/unauthorized-domain" || error.code === "auth/admin-restricted-operation" || error.code === "auth/popup-blocked") {
-      return {
-        success: true,
-        user: {
-          uid: "google-user-" + Date.now().toString().slice(-6),
-          name: "Google Account User",
-          email: "user@gmail.com",
-          photoURL: "https://api.dicebear.com/7.x/avataaars/svg?seed=GoogleUser",
-        },
-      };
-    }
     return {
       success: false,
       error: error.message || "Google sign-in failed",
