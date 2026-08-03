@@ -33,17 +33,29 @@ const Login = () => {
   const [googleMentorId, setGoogleMentorId] = useState('');
 
   const processGoogleLogin = (userName, userEmail, photoURL) => {
+    const avatar = photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userName)}&backgroundColor=b6e3f4`;
     if (role === 'mentor') {
-      localStorage.setItem(
-        'currentUser',
-        JSON.stringify({
-          role: 'mentor',
-          id: `MNT-${Date.now().toString().slice(-6)}`,
-          name: userName,
-          email: userEmail,
-          photoURL: photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`,
-        })
-      );
+      const mentorObj = {
+        role: 'mentor',
+        id: `MNT-${Date.now().toString().slice(-6)}`,
+        name: userName,
+        fullName: userName,
+        email: userEmail,
+        mentorId: 'MNT-2024-001',
+        department: 'Computer Science',
+        location: 'Block A, Room 304',
+        bio: `Logged in as ${userName} (${userEmail}).`,
+        avatar: avatar,
+      };
+
+      localStorage.setItem('currentUser', JSON.stringify(mentorObj));
+      localStorage.setItem('mentorProfile', JSON.stringify(mentorObj));
+
+      const profilesMap = JSON.parse(localStorage.getItem('mentorProfilesMap') || '{}');
+      profilesMap['MNT-2024-001'] = mentorObj;
+      localStorage.setItem('mentorProfilesMap', JSON.stringify(profilesMap));
+
+      window.dispatchEvent(new Event('mentorProfileUpdated'));
       setShowGoogleAccountChooser(false);
       navigate('/mentor/profile');
     } else {
