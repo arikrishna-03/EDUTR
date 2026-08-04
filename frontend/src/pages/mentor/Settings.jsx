@@ -6,10 +6,12 @@ import {
     ChevronRight, Mail
 } from 'lucide-react';
 import LogoutModal from '../../components/LogoutModal';
+import { useTheme } from '../../context/ThemeContext';
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
     const handleConfirmLogout = () => {
@@ -82,8 +84,26 @@ const Settings = () => {
                                         </div>
                                     </div>
                                     <div className="flex bg-[#0f1015] p-1 rounded-lg border border-white/5">
-                                        <button className="px-3 py-1 bg-indigo-600 text-white rounded-md text-xs font-medium shadow">Dark</button>
-                                        <button className="px-3 py-1 text-slate-500 hover:text-white rounded-md text-xs font-medium transition-colors">Light</button>
+                                        <button
+                                            onClick={() => toggleTheme('dark')}
+                                            className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                                theme === 'dark'
+                                                    ? 'bg-indigo-600 text-white shadow'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            Dark
+                                        </button>
+                                        <button
+                                            onClick={() => toggleTheme('light')}
+                                            className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                                theme === 'light'
+                                                    ? 'bg-indigo-600 text-white shadow'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            Light
+                                        </button>
                                     </div>
                                 </div>
 

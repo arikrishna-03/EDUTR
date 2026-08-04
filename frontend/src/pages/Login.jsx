@@ -187,16 +187,19 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 relative">
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+    <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] text-slate-100 relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white px-4">
+      {/* Subtle Ambient Radial Lighting */}
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[150px] pointer-events-none"></div>
 
       {/* Main Login Card */}
-      <div className="relative z-10 w-full max-w-md p-8 bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 transition-all duration-300 min-h-[600px] flex flex-col justify-center">
+      <div className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-slate-900/80 backdrop-blur-2xl rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border border-slate-800/80 transition-all duration-300 min-h-[580px] flex flex-col justify-center before:absolute before:inset-x-10 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-indigo-500/40 before:to-transparent">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-white mb-1 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
             {authMode === 'signin' ? 'Welcome Back' : 'Create Account'}
           </h1>
-          <p className="text-purple-100 text-xs">
+          <p className="text-slate-400 text-xs font-medium">
             {authMode === 'signin'
               ? 'Sign in to continue to EduTracker'
               : 'Sign up to get started with EduTracker'}
@@ -204,10 +207,10 @@ const Login = () => {
         </div>
 
         {/* Role Toggle */}
-        <div className="flex bg-black/20 p-1 rounded-xl mb-5 relative">
+        <div className="flex bg-slate-950/80 p-1.5 rounded-2xl mb-6 relative border border-slate-800/80 shadow-inner">
           <div
-            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-lg transition-all duration-300 ease-out ${
-              role === 'mentor' ? 'left-[calc(50%+2px)]' : 'left-1'
+            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-gradient-to-r from-indigo-600 to-violet-600 rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-300 ease-out ${
+              role === 'mentor' ? 'left-[calc(50%+3px)]' : 'left-1.5'
             }`}
           ></div>
           <button
@@ -216,8 +219,8 @@ const Login = () => {
               setRole('student');
               setAuthError('');
             }}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors z-10 cursor-pointer ${
-              role === 'student' ? 'text-purple-600' : 'text-white/80 hover:text-white'
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors z-10 cursor-pointer ${
+              role === 'student' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <GraduationCap size={18} />
@@ -229,8 +232,8 @@ const Login = () => {
               setRole('mentor');
               setAuthError('');
             }}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors z-10 cursor-pointer ${
-              role === 'mentor' ? 'text-purple-600' : 'text-white/80 hover:text-white'
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors z-10 cursor-pointer ${
+              role === 'mentor' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <User size={18} />
@@ -239,7 +242,7 @@ const Login = () => {
         </div>
 
         {authError && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-100 text-sm text-center flex flex-col items-center gap-2">
+          <div className="mb-5 p-3.5 bg-red-950/40 border border-red-800/50 rounded-xl text-red-300 text-xs text-center flex flex-col items-center gap-2 shadow-inner">
             <span>
               {authError.includes('auth/unauthorized-domain') || authError.includes('authorized in Firebase Console')
                 ? 'This domain is not authorized in Firebase Console.'
@@ -252,7 +255,7 @@ const Login = () => {
                   setAuthError('');
                   setShowGoogleAccountModal(true);
                 }}
-                className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-semibold underline cursor-pointer transition-all"
+                className="px-3 py-1 bg-red-900/50 hover:bg-red-800/60 text-red-200 rounded-lg text-xs font-medium underline cursor-pointer transition-all border border-red-700/50"
               >
                 Use Quick Account Sign-In
               </button>
@@ -263,12 +266,14 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-4">
           {authMode === 'signup' && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-              <label className="block text-sm font-medium text-white/90 mb-1.5">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Full Name
+              </label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
+                className="w-full px-4 py-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
                 placeholder={role === 'mentor' ? 'Dr. Sarah Wilson' : 'Alex Johnson'}
                 required
               />
@@ -276,41 +281,47 @@ const Login = () => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-white/90 mb-1.5">Email Address</label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Email Address
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
+              className="w-full px-4 py-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
               placeholder="name@college.edu"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/90 mb-1.5">Password</label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Password
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
+              className="w-full px-4 py-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
               placeholder="••••••••"
             />
           </div>
 
           {role === 'student' && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-              <label className="block text-sm font-medium text-white/90 mb-1.5">Mentor ID</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Mentor ID
+              </label>
               <input
                 type="text"
                 value={mentorId}
                 onChange={(e) => setMentorId(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm"
+                className="w-full px-4 py-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
                 placeholder="Enter your assigned Mentor ID"
               />
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="grid grid-cols-2 gap-3 pt-1">
             <button
               type={authMode === 'signin' ? 'submit' : 'button'}
               onClick={() => {
@@ -322,12 +333,12 @@ const Login = () => {
               disabled={isLoading}
               className={`flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold transition-all shadow-lg group disabled:opacity-70 cursor-pointer text-sm ${
                 authMode === 'signin'
-                  ? 'bg-white text-purple-600 hover:bg-purple-50'
-                  : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-600/30 hover:from-indigo-500 hover:to-violet-500'
+                  : 'bg-slate-950/40 text-slate-400 border border-slate-800 hover:bg-slate-800/60 hover:text-slate-200'
               }`}
             >
               {isLoading && authMode === 'signin' ? (
-                <Loader2 size={20} className="animate-spin text-purple-600" />
+                <Loader2 size={20} className="animate-spin text-white" />
               ) : (
                 'Sign In'
               )}
@@ -344,29 +355,29 @@ const Login = () => {
               disabled={isLoading}
               className={`flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold transition-all shadow-lg group disabled:opacity-70 cursor-pointer text-sm ${
                 authMode === 'signup'
-                  ? 'bg-white text-purple-600 hover:bg-purple-50'
-                  : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-600/30 hover:from-indigo-500 hover:to-violet-500'
+                  : 'bg-slate-950/40 text-slate-400 border border-slate-800 hover:bg-slate-800/60 hover:text-slate-200'
               }`}
             >
               {isLoading && authMode === 'signup' ? (
-                <Loader2 size={20} className="animate-spin text-purple-600" />
+                <Loader2 size={20} className="animate-spin text-white" />
               ) : (
                 'Sign Up'
               )}
             </button>
           </div>
 
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-white/20"></div>
-            <span className="flex-shrink-0 mx-4 text-white/60 text-xs">Or continue with</span>
-            <div className="flex-grow border-t border-white/20"></div>
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-slate-800"></div>
+            <span className="flex-shrink-0 mx-4 text-slate-500 text-xs">Or continue with</span>
+            <div className="flex-grow border-t border-slate-800"></div>
           </div>
 
           <button
             type="button"
             onClick={handleGoogleClick}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 bg-white/10 text-white font-medium py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-70 cursor-pointer text-sm"
+            className="w-full flex items-center justify-center gap-3 bg-slate-950/80 hover:bg-slate-800 text-slate-200 font-medium py-3 rounded-xl border border-slate-800 hover:border-slate-700 transition-all disabled:opacity-70 cursor-pointer text-sm shadow-inner"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -390,14 +401,14 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="text-center mt-5 text-purple-100 text-sm">
+        <p className="text-center mt-6 text-slate-400 text-sm">
           {authMode === 'signin' ? (
             <>
               Don't have an account?{' '}
               <button
                 type="button"
                 onClick={() => setAuthMode('signup')}
-                className="text-white font-semibold hover:underline cursor-pointer"
+                className="text-indigo-400 font-semibold hover:text-indigo-300 hover:underline cursor-pointer transition-colors"
               >
                 Sign Up
               </button>
@@ -408,7 +419,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setAuthMode('signin')}
-                className="text-white font-semibold hover:underline cursor-pointer"
+                className="text-indigo-400 font-semibold hover:text-indigo-300 hover:underline cursor-pointer transition-colors"
               >
                 Sign In
               </button>
@@ -421,32 +432,32 @@ const Login = () => {
       {showMentorIdModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
             onClick={() => setShowMentorIdModal(false)}
           ></div>
 
-          <div className="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 p-6">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 p-6 text-slate-100">
             <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4">
                 <GraduationCap size={24} />
               </div>
-              <h3 className="text-xl font-bold text-slate-800">One Last Step</h3>
-              <p className="text-slate-500 text-sm mt-1">
+              <h3 className="text-xl font-bold text-white">One Last Step</h3>
+              <p className="text-slate-400 text-xs mt-1">
                 Please enter your Mentor ID to complete the login for{' '}
-                <span className="font-semibold text-slate-700">{pendingGoogleUser}</span>
+                <span className="font-semibold text-slate-200">{pendingGoogleUser}</span>
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                   Mentor ID
                 </label>
                 <input
                   type="text"
                   value={googleMentorId}
                   onChange={(e) => setGoogleMentorId(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-medium"
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium text-sm"
                   placeholder="e.g. MENTOR123"
                   autoFocus
                 />
@@ -454,7 +465,7 @@ const Login = () => {
 
               <button
                 onClick={handleGoogleMentorIdSubmit}
-                className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-purple-500/30"
+                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30"
               >
                 Complete Login
               </button>
