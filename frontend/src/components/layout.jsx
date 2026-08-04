@@ -9,10 +9,12 @@ import {
   UserCircle,
   Settings,
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   // Determine if we are in Student View or Mentor View
   const isStudent = location.pathname.startsWith('/student');
@@ -43,12 +45,14 @@ const Layout = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-[#0f1015] font-sans text-slate-100 overflow-hidden">
+    <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-300 ${theme === 'light' ? 'bg-slate-50 text-slate-900 light' : 'bg-[#0f1015] text-slate-100 dark'}`}>
       {/* 
         Fixed Sidebar 
       */}
       <aside
-        className="fixed top-0 left-0 h-full bg-[#0b0c10] border-r border-white/5 z-50 transition-all duration-300 ease-in-out w-20 hover:w-64 flex flex-col shadow-2xl group/sidebar"
+        className={`fixed top-0 left-0 h-full border-r z-50 transition-all duration-300 ease-in-out w-20 hover:w-64 flex flex-col shadow-2xl group/sidebar ${
+          theme === 'light' ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#0b0c10] border-white/5 text-slate-100'
+        }`}
       >
         {/* Logo Area */}
         <div
