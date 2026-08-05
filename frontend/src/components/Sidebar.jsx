@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Home, LayoutGrid, Code, Users, ClipboardCheck, Settings, User, LogOut } from 'lucide-react';
+import { Home, LayoutGrid, Code, Users, ClipboardCheck, Settings, User, LogOut, Trophy } from 'lucide-react';
 import LogoutModal from './LogoutModal';
 
 export default function Sidebar() {
@@ -20,6 +20,7 @@ export default function Sidebar() {
   const mentorItems = [
     { path: '/mentor/home', label: 'Home', icon: Home },
     { path: '/mentor/dashboard', label: 'Dashboard', icon: LayoutGrid },
+    { path: '/mentor/contest', label: 'Contest', icon: Trophy },
     { path: '/mentor/students', label: 'Students', icon: Users },
     { path: '/mentor/attendance', label: 'Attendance', icon: ClipboardCheck },
     { path: '/mentor/hackathon', label: 'Hackathon', icon: Code },
@@ -28,6 +29,7 @@ export default function Sidebar() {
   const studentItems = [
     { path: '/student/home', label: 'Home', icon: Home },
     { path: '/student/dashboard', label: 'Dashboard', icon: LayoutGrid }, // Analytics
+    { path: '/student/contest', label: 'Contest', icon: Trophy },
     { path: '/student/students', label: 'Students', icon: Users },
     { path: '/student/attendance', label: 'Attendance', icon: ClipboardCheck },
     { path: '/student/hackathon', label: 'Hackathon', icon: Code },

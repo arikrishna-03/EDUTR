@@ -102,6 +102,7 @@ const Attendance = () => {
         }
 
         localStorage.setItem('attendanceHistory', JSON.stringify(existingHistory));
+        window.dispatchEvent(new Event('attendanceUpdated'));
         alert('Attendance submitted successfully!');
     };
 

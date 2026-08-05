@@ -18,6 +18,8 @@ import StudentPlatformSettings from './pages/StudentPlatformSettings';
 import Notifications from './pages/student/Notifications';
 
 import MentorNotifications from './pages/mentor/Notifications';
+import MentorContest from './pages/mentor/Contest';
+import StudentContest from './pages/student/Contest';
 
 const App = () => {
   return (
@@ -29,8 +31,8 @@ const App = () => {
       <Route path="/mentor" element={<Layout />}>
         <Route index element={<Navigate to="/mentor/home" replace />} />
         <Route path="home" element={<MentorHome />} />
-        {/* Placeholder routes for other sidebar items */}
         <Route path="dashboard" element={<MentorDashboard />} />
+        <Route path="contest" element={<MentorContest />} />
         <Route path="students" element={<MentorStudents />} />
         <Route path="student/:studentId" element={<StudentDashboard />} />
         <Route path="attendance" element={<MentorAttendance />} />
@@ -45,6 +47,7 @@ const App = () => {
         <Route index element={<Navigate to="/student/home" replace />} />
         <Route path="home" element={<StudentHome />} />
         <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="contest" element={<StudentContest />} />
         <Route path="students" element={<div className="p-4 text-white">Student List Coming Soon</div>} />
         <Route path="attendance" element={<div className="p-4 text-white">Attendance View Coming Soon</div>} />
         <Route path="hackathon" element={<Hackathon />} />

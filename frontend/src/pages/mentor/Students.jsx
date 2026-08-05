@@ -101,6 +101,7 @@ const Students = () => {
             const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
             const remainingStudents = allStudents.filter(s => s.id !== studentId || (s.mentorId && s.mentorId.trim().toUpperCase() !== activeId));
             localStorage.setItem('linkedStudents', JSON.stringify(remainingStudents));
+            window.dispatchEvent(new Event('linkedStudentsUpdated'));
         }
         setActiveMenuId(null);
     };

@@ -52,37 +52,81 @@ const Home = () => {
     });
 
     useEffect(() => {
-        const activeId = mentorId.trim().toUpperCase();
-        const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
-        const myStudents = allStudents.filter(
-            s => s.mentorId && s.mentorId.trim().toUpperCase() === activeId
-        );
-        
-        const todayStr = new Date().toISOString().split('T')[0];
-        const history = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
-        
-        // Find today's record for this mentor
-        const todayRecord = history.find(h => h.date === todayStr && h.mentorId === mentorId);
-        
-        let present = 0;
-        let absent = 0;
-        
-        if (todayRecord) {
-            todayRecord.records.forEach(r => {
-                if (r.status === 'Present') present++;
-                else if (r.status === 'Absent') absent++;
+        const calculateStats = () => {
+            const activeId = mentorId.trim().toUpperCase();
+            const allStudents = JSON.parse(localStorage.getItem('linkedStudents') || '[]');
+            const myStudents = allStudents.filter(
+                s => s.mentorId && s.mentorId.trim().toUpperCase() === activeId
+            );
+
+            // Deduplicate students
+            const seen = new Set();
+            const uniqueStudents = myStudents.filter(s => {
+                const key = s.email || s.id || s.name;
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
             });
-        } else {
-            // If no record submitted yet for today, default all to Present
-            present = myStudents.length;
-            absent = 0;
-        }
-        
-        setStats({
-            totalStudents: myStudents.length,
-            presentToday: present,
-            absentToday: absent
-        });
+
+            const totalCount = uniqueStudents.length;
+
+            if (totalCount === 0) {
+                setStats({
+                    totalStudents: 0,
+                    presentToday: 0,
+                    absentToday: 0
+                });
+                return;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            const history = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
+
+            // Find today's record for this mentor
+            const todayRecord = history.find(
+                h => h.date === todayStr && h.mentorId && h.mentorId.trim().toUpperCase() === activeId
+            );
+
+            let present = 0;
+            let absent = 0;
+
+            if (todayRecord && Array.isArray(todayRecord.records)) {
+                const recordMap = new Map();
+                todayRecord.records.forEach(r => {
+                    recordMap.set(r.studentId, r.status);
+                });
+
+                uniqueStudents.forEach(s => {
+                    const status = recordMap.get(s.id);
+                    if (status === 'Absent') {
+                        absent++;
+                    } else {
+                        present++;
+                    }
+                });
+            } else {
+                // If no record submitted yet for today, default all to Present
+                present = totalCount;
+                absent = 0;
+            }
+
+            setStats({
+                totalStudents: totalCount,
+                presentToday: present,
+                absentToday: absent
+            });
+        };
+
+        calculateStats();
+
+        window.addEventListener('storage', calculateStats);
+        window.addEventListener('attendanceUpdated', calculateStats);
+        window.addEventListener('linkedStudentsUpdated', calculateStats);
+        return () => {
+            window.removeEventListener('storage', calculateStats);
+            window.removeEventListener('attendanceUpdated', calculateStats);
+            window.removeEventListener('linkedStudentsUpdated', calculateStats);
+        };
     }, [mentorId]);
 
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
