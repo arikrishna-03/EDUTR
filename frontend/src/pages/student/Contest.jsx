@@ -4,11 +4,11 @@ import {
     Calendar as CalendarIcon, ExternalLink, Clock, AlertCircle, Trophy, 
     Search, Filter, X, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays,
     List, Bell, Bookmark, Check, Share2, Radio, CalendarPlus, Flame, Sparkles,
-    CheckCircle2, Globe, RefreshCw, Star, Info
+    CheckCircle2, Globe, RefreshCw, Star, Info, Users
 } from 'lucide-react';
 import { 
     format, addMonths, subMonths, startOfMonth, endOfMonth, 
-    eachDayOfInterval, isSameMonth, isSameDay 
+    eachDayOfInterval, isSameMonth, isSameDay, parseISO 
 } from 'date-fns';
 
 // Platform Brand Styling Configuration
@@ -17,71 +17,55 @@ const PLATFORM_CONFIG = {
         bg: 'bg-amber-500/10',
         text: 'text-amber-400',
         border: 'border-amber-500/30',
-        gradient: 'from-amber-500/20 to-orange-500/10',
-        accent: 'bg-amber-500',
-        badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-        logoText: 'LC',
-        color: '#FFA116'
+        badgeBg: 'bg-amber-950/60 text-amber-300 border border-amber-500/30',
+        dotColor: 'bg-amber-500',
+        icon: '⚡',
+        url: 'https://leetcode.com/contest/'
     },
     CodeChef: {
-        bg: 'bg-amber-800/10',
+        bg: 'bg-yellow-900/20',
         text: 'text-amber-300',
-        border: 'border-amber-700/30',
-        gradient: 'from-amber-800/20 to-yellow-800/10',
-        accent: 'bg-amber-700',
-        badgeBg: 'bg-amber-800/20 text-amber-300 border-amber-700/30',
-        logoText: 'CC',
-        color: '#5B4638'
+        border: 'border-yellow-700/30',
+        badgeBg: 'bg-yellow-950/70 text-amber-300 border border-yellow-700/40',
+        dotColor: 'bg-amber-600',
+        icon: '👨‍🍳',
+        url: 'https://www.codechef.com/contests'
     },
     Codeforces: {
         bg: 'bg-sky-500/10',
         text: 'text-sky-400',
         border: 'border-sky-500/30',
-        gradient: 'from-sky-500/20 to-blue-600/10',
-        accent: 'bg-sky-500',
-        badgeBg: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
-        logoText: 'CF',
-        color: '#1F8ACB'
+        badgeBg: 'bg-sky-950/60 text-sky-300 border border-sky-500/30',
+        dotColor: 'bg-sky-500',
+        icon: '📊',
+        url: 'https://codeforces.com/contests'
     },
     AtCoder: {
         bg: 'bg-slate-500/10',
         text: 'text-slate-300',
         border: 'border-slate-500/30',
-        gradient: 'from-slate-600/20 to-zinc-700/10',
-        accent: 'bg-slate-600',
-        badgeBg: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
-        logoText: 'AC',
-        color: '#475569'
+        badgeBg: 'bg-slate-800/80 text-slate-300 border border-slate-600/40',
+        dotColor: 'bg-slate-400',
+        icon: '🎯',
+        url: 'https://atcoder.jp/contests/'
     },
-    HackerRank: {
-        bg: 'bg-emerald-500/10',
-        text: 'text-emerald-400',
-        border: 'border-emerald-500/30',
-        gradient: 'from-emerald-500/20 to-teal-600/10',
-        accent: 'bg-emerald-500',
-        badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-        logoText: 'HR',
-        color: '#2EC4B6'
-    },
-    GeeksforGeeks: {
-        bg: 'bg-green-600/10',
-        text: 'text-green-400',
-        border: 'border-green-500/30',
-        gradient: 'from-green-600/20 to-emerald-700/10',
-        accent: 'bg-green-600',
-        badgeBg: 'bg-green-500/20 text-green-300 border-green-500/30',
-        logoText: 'GFG',
-        color: '#2F8D46'
+    CodeStudio: {
+        bg: 'bg-orange-500/10',
+        text: 'text-orange-400',
+        border: 'border-orange-500/30',
+        badgeBg: 'bg-orange-950/60 text-orange-300 border border-orange-500/30',
+        dotColor: 'bg-orange-500',
+        icon: '💻',
+        url: 'https://www.naukri.com/code360/contests'
     },
     Custom: {
-        bg: 'bg-purple-500/10',
-        text: 'text-purple-400',
-        border: 'border-purple-500/30',
-        gradient: 'from-purple-600/20 to-indigo-600/10',
-        accent: 'bg-purple-600',
-        badgeBg: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-        logoText: 'ET',
-        color: '#8B5CF6'
+        bg: 'bg-indigo-500/10',
+        text: 'text-indigo-400',
+        border: 'border-indigo-500/30',
+        badgeBg: 'bg-indigo-950/60 text-indigo-300 border border-indigo-500/30',
+        dotColor: 'bg-indigo-500',
+        icon: '🚀',
+        url: 'https://leetcode.com/contest/'
     }
 };
 
@@ -90,148 +74,306 @@ export default function StudentContest() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPlatform, setSelectedPlatform] = useState('All');
-    const [statusTab, setStatusTab] = useState('All'); // 'All', 'Live', 'Upcoming', 'Past', 'Bookmarked'
-    const [selectedDate, setSelectedDate] = useState('');
-    const [viewMode, setViewMode] = useState('grid'); // 'grid', 'list', 'calendar'
+    const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
     const [calendarMonth, setCalendarMonth] = useState(new Date());
-    const [bookmarkedIds, setBookmarkedIds] = useState(() => {
-        try {
-            return JSON.parse(localStorage.getItem('codolio_reminders') || '[]');
-        } catch (e) {
-            return [];
-        }
-    });
+    const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // Save bookmarks to localStorage
+    // Bookmarked/Subscribed Contest IDs
+    const [subscribedIds, setSubscribedIds] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('student_subscribed_contests') || '[]');
+        } catch (e) {
+            return ['c-cc-starters-12', 'c-lc-weekly-15', 'c-ac-abc-15'];
+        }
+    });
+
     useEffect(() => {
-        localStorage.setItem('codolio_reminders', JSON.stringify(bookmarkedIds));
-    }, [bookmarkedIds]);
+        localStorage.setItem('student_subscribed_contests', JSON.stringify(subscribedIds));
+    }, [subscribedIds]);
 
     const showToast = (msg) => {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(''), 3000);
     };
 
-    const toggleBookmark = (id, title) => {
-        setBookmarkedIds(prev => {
-            const exists = prev.includes(id);
-            if (exists) {
-                showToast(`Removed reminder for "${title}"`);
+    const toggleSubscribe = (id, title) => {
+        setSubscribedIds(prev => {
+            const isSubbed = prev.includes(id);
+            if (isSubbed) {
+                showToast(`Unsubscribed from "${title}"`);
                 return prev.filter(item => item !== id);
             } else {
-                showToast(`🔔 Reminder set for "${title}"!`);
+                showToast(`🔔 Subscribed to "${title}"!`);
                 return [...prev, id];
             }
         });
     };
 
-    // Default Seed Contests with realistic live/upcoming schedule
+    // Real-World Weekly Contest Schedule Generator across requested 5 platforms
     const getDefaultContests = () => {
-        const now = new Date();
-        const todayStr = format(now, 'yyyy-MM-dd');
-        
-        const day2 = new Date(now.getTime() + 86400000 * 2);
-        const day3 = new Date(now.getTime() + 86400000 * 3);
-        const day5 = new Date(now.getTime() + 86400000 * 5);
-        const day7 = new Date(now.getTime() + 86400000 * 7);
-        const pastDay = new Date(now.getTime() - 86400000 * 2);
+        const currYear = calendarMonth.getFullYear();
+        const currMonth = calendarMonth.getMonth(); // 0-indexed
 
-        return [
-            {
-                id: 'c-live-1',
-                title: 'LeetCode Weekly Contest 412',
-                platform: 'LeetCode',
-                startDate: todayStr,
-                startTime: '10:30',
-                duration: '1.5 Hours',
-                status: 'Live',
-                link: 'https://leetcode.com/contest/',
-                description: 'Weekly algorithmic contest featuring 4 brand new problem challenges from Easy to Hard.',
-                participants: 12450
-            },
-            {
-                id: 'c-upcoming-1',
-                title: 'CodeChef Starters 148 (Div 1, 2, 3 & 4)',
-                platform: 'CodeChef',
-                startDate: format(day2, 'yyyy-MM-dd'),
-                startTime: '20:00',
-                duration: '2 Hours',
-                status: 'Upcoming',
-                link: 'https://www.codechef.com/contests',
-                description: 'Division 1, 2, 3 and 4 rated competitive programming challenge for all skill levels.',
-                participants: 8900
-            },
-            {
-                id: 'c-upcoming-2',
-                title: 'Codeforces Round 965 (Div. 2)',
-                platform: 'Codeforces',
-                startDate: format(day3, 'yyyy-MM-dd'),
-                startTime: '17:35',
-                duration: '2 Hours',
-                status: 'Upcoming',
-                link: 'https://codeforces.com/contests',
-                description: 'Official Div. 2 rated contest on Codeforces featuring 5-6 problem-solving tasks.',
-                participants: 15200
-            },
-            {
-                id: 'c-upcoming-3',
-                title: 'EduTrack College Championship - Grand Finals',
-                platform: 'Custom',
-                startDate: format(day5, 'yyyy-MM-dd'),
-                startTime: '09:00',
-                duration: '3.5 Hours',
-                status: 'Upcoming',
-                link: 'https://hackerrank.com',
-                description: 'Exclusive intra-college programming league finals. Top 3 coders win cash prizes and badges!',
-                participants: 340
-            },
-            {
-                id: 'c-upcoming-4',
-                title: 'AtCoder Beginner Contest 367',
-                platform: 'AtCoder',
-                startDate: format(day7, 'yyyy-MM-dd'),
-                startTime: '17:30',
-                duration: '1.4 Hours',
-                status: 'Upcoming',
-                link: 'https://atcoder.jp/contests/',
-                description: 'Japan’s premier competitive programming contest site. 8 mathematical and algorithmic tasks.',
-                participants: 9100
-            },
-            {
-                id: 'c-upcoming-5',
-                title: 'GeeksforGeeks Weekly Contest 165',
-                platform: 'GeeksforGeeks',
-                startDate: format(day3, 'yyyy-MM-dd'),
-                startTime: '19:00',
-                duration: '1.5 Hours',
-                status: 'Upcoming',
-                link: 'https://practice.geeksforgeeks.org/events',
-                description: 'GFG weekly contest featuring DSA problems designed for interview prep.',
-                participants: 6700
-            },
-            {
-                id: 'c-past-1',
-                title: 'HackerRank World CodeSprint 2026',
-                platform: 'HackerRank',
-                startDate: format(pastDay, 'yyyy-MM-dd'),
-                startTime: '14:00',
-                duration: '3 Hours',
-                status: 'Past',
-                link: 'https://www.hackerrank.com/contests',
-                description: 'Global coding sprint featuring algorithmic puzzles, data structures and optimization.',
-                participants: 11000
+        const daysInCurrentMonth = new Date(currYear, currMonth + 1, 0).getDate();
+        const seedList = [];
+
+        let leetCodeWeeklyNum = 410;
+        let leetCodeBiweeklyNum = 188;
+        let codeChefStartersNum = 249;
+        let codeforcesRoundNum = 964;
+        let atcoderBeginnerNum = 470;
+        let codeStudioNum = 101;
+
+        // Loop through all days of the month
+        for (let day = 1; day <= daysInCurrentMonth; day++) {
+            const dt = new Date(currYear, currMonth, day);
+            const dateStr = format(dt, 'yyyy-MM-dd');
+            const dayOfWeek = dt.getDay(); // 0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
+
+            // 0: SUNDAY (LeetCode Weekly Contest: 8:00 AM - 9:30 AM & AtCoder ARC: 5:30 PM - 7:30 PM)
+            if (dayOfWeek === 0) {
+                seedList.push({
+                    id: `c-lc-weekly-${day}`,
+                    title: `Weekly Contest ${leetCodeWeeklyNum++}`,
+                    platform: 'LeetCode',
+                    startDate: dateStr,
+                    startTime: '08:00',
+                    endTime: '09:30 AM',
+                    duration: '1.5 Hours',
+                    status: 'Upcoming',
+                    link: 'https://leetcode.com/contest/',
+                    description: 'Weekly algorithmic problem-solving challenge on LeetCode.',
+                    subscribers: Math.floor(Math.random() * 50) + 90
+                });
+
+                if (day % 2 === 0) {
+                    seedList.push({
+                        id: `c-ac-arc-${day}`,
+                        title: `AtCoder Regular Contest (ARC) 18${day % 9}`,
+                        platform: 'AtCoder',
+                        startDate: dateStr,
+                        startTime: '17:30',
+                        endTime: '19:30 PM',
+                        duration: '2 Hours',
+                        status: 'Upcoming',
+                        link: 'https://atcoder.jp/contests/',
+                        description: 'Regular competitive programming contest on AtCoder.',
+                        subscribers: Math.floor(Math.random() * 30) + 40
+                    });
+                }
             }
-        ];
+
+            // 1: MONDAY (CodeChef Monday Munch & CodeStudio Weekly Sprint)
+            if (dayOfWeek === 1) {
+                seedList.push({
+                    id: `c-cc-mon-${day}`,
+                    title: `Monday Munch Challenge`,
+                    platform: 'CodeChef',
+                    startDate: dateStr,
+                    startTime: '18:00',
+                    endTime: '20:00 PM',
+                    duration: '2 Hours',
+                    status: 'Upcoming',
+                    link: 'https://www.codechef.com/contests',
+                    description: 'Weekly Monday algorithmic sprint for speed programming on CodeChef.',
+                    subscribers: Math.floor(Math.random() * 40) + 50
+                });
+
+                seedList.push({
+                    id: `c-cs-mon-${day}`,
+                    title: `Code360 Weekly Sprint ${codeStudioNum++}`,
+                    platform: 'CodeStudio',
+                    startDate: dateStr,
+                    startTime: '19:00',
+                    endTime: '21:00 PM',
+                    duration: '2 Hours',
+                    status: 'Upcoming',
+                    link: 'https://www.naukri.com/code360/contests',
+                    description: 'DSA & problem solving contest on Naukri Code360 / CodeStudio.',
+                    subscribers: Math.floor(Math.random() * 30) + 45
+                });
+            }
+
+            // 2: TUESDAY (Codeforces Div. 2 / Div. 3 Contest: 8:05 PM)
+            if (dayOfWeek === 2) {
+                seedList.push({
+                    id: `c-cf-tue-${day}`,
+                    title: `Codeforces Round ${codeforcesRoundNum++} (Div. 2)`,
+                    platform: 'Codeforces',
+                    startDate: dateStr,
+                    startTime: '20:05',
+                    endTime: '22:05 PM',
+                    duration: '2 Hours',
+                    status: 'Upcoming',
+                    link: 'https://codeforces.com/contests',
+                    description: 'Div. 2 rated contest on Codeforces with 5-6 algorithmic problems.',
+                    subscribers: Math.floor(Math.random() * 60) + 90
+                });
+            }
+
+            // 3: WEDNESDAY (CodeChef Starters Contest - 8:00 PM to 10:00 PM)
+            if (dayOfWeek === 3) {
+                seedList.push({
+                    id: `c-cc-starters-${day}`,
+                    title: `Starters ${codeChefStartersNum++}`,
+                    platform: 'CodeChef',
+                    startDate: dateStr,
+                    startTime: '20:00',
+                    endTime: '22:00 PM',
+                    duration: '2 Hours',
+                    status: 'Upcoming',
+                    link: 'https://www.codechef.com/contests',
+                    description: 'Division 1, 2, 3 & 4 rated CodeChef Starters competition.',
+                    subscribers: Math.floor(Math.random() * 50) + 70
+                });
+            }
+
+            // 4: THURSDAY (Codeforces Educational Round: 8:05 PM)
+            if (dayOfWeek === 4) {
+                seedList.push({
+                    id: `c-cf-edu-${day}`,
+                    title: `Educational Codeforces Round ${165 + (day % 5)}`,
+                    platform: 'Codeforces',
+                    startDate: dateStr,
+                    startTime: '20:05',
+                    endTime: '22:05 PM',
+                    duration: '2 Hours',
+                    status: 'Upcoming',
+                    link: 'https://codeforces.com/contests',
+                    description: 'Educational contest designed for practicing standard data structures.',
+                    subscribers: Math.floor(Math.random() * 50) + 80
+                });
+            }
+
+            // 5: FRIDAY (CodeStudio / Code360 Beginner Contest: 6:00 PM)
+            if (dayOfWeek === 5) {
+                seedList.push({
+                    id: `c-cs-fri-${day}`,
+                    title: `Code360 Beginner Contest ${120 + (day % 8)}`,
+                    platform: 'CodeStudio',
+                    startDate: dateStr,
+                    startTime: '18:00',
+                    endTime: '20:00 PM',
+                    duration: '2 Hours',
+                    status: 'Upcoming',
+                    link: 'https://www.naukri.com/code360/contests',
+                    description: 'Code360 / CodeStudio weekly algorithmic & interview prep test.',
+                    subscribers: Math.floor(Math.random() * 40) + 60
+                });
+            }
+
+            // 6: SATURDAY (AtCoder Beginner Contest 5:30 PM & LeetCode Biweekly 8:00 PM)
+            if (dayOfWeek === 6) {
+                seedList.push({
+                    id: `c-ac-abc-${day}`,
+                    title: `AtCoder Beginner Contest ${atcoderBeginnerNum++}`,
+                    platform: 'AtCoder',
+                    startDate: dateStr,
+                    startTime: '17:30',
+                    endTime: '19:10 PM',
+                    duration: '100 Mins',
+                    status: 'Upcoming',
+                    link: 'https://atcoder.jp/contests/',
+                    description: 'Rated Japan competitive programming contest for all levels.',
+                    subscribers: Math.floor(Math.random() * 40) + 50
+                });
+
+                seedList.push({
+                    id: `c-lc-biweekly-${day}`,
+                    title: `Biweekly Contest ${leetCodeBiweeklyNum++}`,
+                    platform: 'LeetCode',
+                    startDate: dateStr,
+                    startTime: '20:00',
+                    endTime: '21:30 PM',
+                    duration: '1.5 Hours',
+                    status: 'Upcoming',
+                    link: 'https://leetcode.com/contest/',
+                    description: 'Alternate Saturday LeetCode biweekly rated challenge.',
+                    subscribers: Math.floor(Math.random() * 50) + 80
+                });
+            }
+        }
+
+        return seedList;
     };
 
     const fetchContests = async () => {
         setIsRefreshing(true);
-        let loadedContests = [];
+        let loaded = [];
+        let livePlatformContests = [];
 
+        // 1. Fetch real-time live/upcoming contests from Codeforces public API
         try {
-            // 1. Attempt internal backend fetch
+            const cfRes = await fetch('https://codeforces.com/api/contest.list');
+            if (cfRes.ok) {
+                const cfData = await cfRes.json();
+                if (cfData.status === 'OK' && Array.isArray(cfData.result)) {
+                    const upcomingCF = cfData.result
+                        .filter(c => c.phase === 'BEFORE' || c.phase === 'CODING')
+                        .slice(0, 10)
+                        .map(c => {
+                            const startDt = new Date(c.startTimeSeconds * 1000);
+                            return {
+                                id: `cf-live-${c.id}`,
+                                title: c.name,
+                                platform: 'Codeforces',
+                                startDate: format(startDt, 'yyyy-MM-dd'),
+                                startTime: format(startDt, 'HH:mm'),
+                                endTime: format(new Date(c.startTimeSeconds * 1000 + c.durationSeconds * 1000), 'HH:mm'),
+                                duration: `${Math.round(c.durationSeconds / 3600)} Hours`,
+                                status: c.phase === 'CODING' ? 'Live' : 'Upcoming',
+                                link: 'https://codeforces.com/contests',
+                                description: `Official live Codeforces contest (${c.name}).`
+                            };
+                        });
+                    livePlatformContests.push(...upcomingCF);
+                }
+            }
+        } catch (e) {}
+
+        // 2. Fetch live platform contests from Kontests API for LeetCode, CodeChef, AtCoder
+        try {
+            const kontestsRes = await fetch('https://kontests.net/api/v1/all');
+            if (kontestsRes.ok) {
+                const kData = await kontestsRes.json();
+                if (Array.isArray(kData)) {
+                    const mappedK = kData
+                        .filter(c => ['LeetCode', 'CodeChef', 'AtCoder', 'CodeForces'].includes(c.site))
+                        .map(c => {
+                            const pltName = c.site === 'CodeForces' ? 'Codeforces' : c.site;
+                            const platformUrlMap = {
+                                LeetCode: 'https://leetcode.com/contest/',
+                                CodeChef: 'https://www.codechef.com/contests',
+                                Codeforces: 'https://codeforces.com/contests',
+                                AtCoder: 'https://atcoder.jp/contests/',
+                                CodeStudio: 'https://www.naukri.com/code360/contests'
+                            };
+
+                            const startDt = new Date(c.start_time);
+                            const endDt = new Date(c.end_time);
+
+                            return {
+                                id: `k-live-${c.name.replace(/\s+/g, '-').toLowerCase()}`,
+                                title: c.name,
+                                platform: pltName,
+                                startDate: format(startDt, 'yyyy-MM-dd'),
+                                startTime: format(startDt, 'HH:mm'),
+                                endTime: format(endDt, 'HH:mm'),
+                                duration: c.duration ? `${Math.round(c.duration / 3600)} Hours` : '2 Hours',
+                                status: c.status === 'CODING' ? 'Live' : 'Upcoming',
+                                link: c.url || platformUrlMap[pltName] || 'https://leetcode.com/contest/',
+                                description: `Official ${pltName} competition.`
+                            };
+                        });
+                    livePlatformContests.push(...mappedK);
+                }
+            }
+        } catch (e) {}
+
+        // 3. Fetch internal mentor posted contests
+        try {
             const token = localStorage.getItem('token');
             if (token) {
                 const response = await fetch('http://localhost:5000/api/contests', {
@@ -240,153 +382,101 @@ export default function StudentContest() {
                 if (response.ok) {
                     const data = await response.json();
                     if (Array.isArray(data) && data.length > 0) {
-                        loadedContests = data;
+                        loaded = data;
                     }
                 }
             }
-        } catch (err) {
-            console.warn("Backend API offline for contests, using fallback data.");
-        }
+        } catch (e) {}
 
-        // 2. Fetch public real-world Kontests API if reachable
-        try {
-            const extRes = await fetch('https://kontests.net/api/v1/all', { cache: 'no-store' });
-            if (extRes.ok) {
-                const extData = await extRes.json();
-                if (Array.isArray(extData) && extData.length > 0) {
-                    const mapped = extData.slice(0, 15).map((c, i) => {
-                        let platform = 'Custom';
-                        const site = (c.site || '').toLowerCase();
-                        if (site.includes('leetcode')) platform = 'LeetCode';
-                        else if (site.includes('codeforces')) platform = 'Codeforces';
-                        else if (site.includes('codechef')) platform = 'CodeChef';
-                        else if (site.includes('atcoder')) platform = 'AtCoder';
-                        else if (site.includes('hackerrank')) platform = 'HackerRank';
-                        else if (site.includes('geeks')) platform = 'GeeksforGeeks';
+        const defaults = getDefaultContests();
+        const local = JSON.parse(localStorage.getItem('contests') || '[]')
+            .filter(c => c && !c.title?.includes('EduTrack') && !c.title?.includes('ICPC'));
+        const combined = [...livePlatformContests, ...local, ...loaded];
+        
+        const seen = new Set();
+        const merged = [];
 
-                        const st = new Date(c.start_time);
-                        const isLive = c.status === 'CODING' || (c.in_24_hours === 'Yes' && new Date() >= st);
-
-                        return {
-                            id: `kontest-${i}-${c.name}`,
-                            title: c.name,
-                            platform: platform,
-                            startDate: !isNaN(st.getTime()) ? format(st, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-                            startTime: !isNaN(st.getTime()) ? format(st, 'HH:mm') : '18:00',
-                            duration: c.duration ? `${(parseFloat(c.duration) / 3600).toFixed(1)} Hours` : '2 Hours',
-                            status: isLive ? 'Live' : 'Upcoming',
-                            link: c.url || 'https://leetcode.com',
-                            description: `Live coding event aggregated from ${c.site || platform}.`,
-                            participants: Math.floor(Math.random() * 5000) + 1200
-                        };
-                    });
-
-                    // Merge external with internal
-                    const existingIds = new Set(loadedContests.map(c => c.id || c.title));
-                    const uniqueMapped = mapped.filter(m => !existingIds.has(m.id) && !existingIds.has(m.title));
-                    loadedContests = [...uniqueMapped, ...loadedContests];
-                }
+        [...combined, ...defaults].forEach(c => {
+            const key = (c.id || c.title) + '_' + (c.startDate || '');
+            if (!seen.has(key)) {
+                seen.add(key);
+                merged.push(c);
             }
-        } catch (e) {
-            console.log("Kontests external API call skipped or offline.");
-        }
+        });
 
-        // 3. Fallback to localStorage or curated seed
-        if (loadedContests.length === 0) {
-            const local = JSON.parse(localStorage.getItem('contests') || 'null');
-            if (local && local.length > 0) {
-                loadedContests = local;
-            } else {
-                loadedContests = getDefaultContests();
-            }
-        }
-
-        setContests(loadedContests);
+        setContests(merged);
         setLoading(false);
+    };
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        showToast("🔄 Refreshing contest schedule...");
+        await new Promise(r => setTimeout(r, 600));
+        await fetchContests();
         setIsRefreshing(false);
+        showToast("✅ Contest schedule updated successfully!");
+    };
+
+    const handleAllDaysClick = () => {
+        setSelectedDate('');
+        setSearchQuery('');
+        setSelectedPlatform('All');
+        showToast("📅 Showing contests for all days");
+    };
+
+    const handleTodayClick = () => {
+        const todayStr = format(new Date(), 'yyyy-MM-dd');
+        setCalendarMonth(new Date());
+        setSelectedDate(todayStr);
+        showToast(`📅 Filtered schedule to Today (${format(new Date(), 'dd MMM yyyy')})`);
     };
 
     useEffect(() => {
         fetchContests();
-        const handleStorageChange = () => fetchContests();
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
+    }, [calendarMonth]);
 
-    // Filter & Search Logic
+    // Filtering logic
     const filteredContests = useMemo(() => {
-        return contests.filter(contest => {
-            const title = (contest.title || '').toLowerCase();
-            const platform = (contest.platform || '').toLowerCase();
-            const desc = (contest.description || '').toLowerCase();
+        return contests.filter(c => {
+            const title = (c.title || '').toLowerCase();
+            const platform = (c.platform || '').toLowerCase();
+            const desc = (c.description || '').toLowerCase();
             const query = searchQuery.toLowerCase();
 
             const matchesSearch = !searchQuery || title.includes(query) || platform.includes(query) || desc.includes(query);
-            const matchesPlatform = selectedPlatform === 'All' || contest.platform === selectedPlatform;
-            const matchesDate = !selectedDate || contest.startDate === selectedDate;
+            const matchesPlatform = selectedPlatform === 'All' || c.platform === selectedPlatform;
+            const matchesDate = !selectedDate || c.startDate === selectedDate;
 
-            // Status Filter
-            let matchesStatus = true;
-            const isBookmarked = bookmarkedIds.includes(contest.id || contest._id);
-
-            if (statusTab === 'Live') matchesStatus = contest.status === 'Live';
-            else if (statusTab === 'Upcoming') matchesStatus = contest.status === 'Upcoming';
-            else if (statusTab === 'Past') matchesStatus = contest.status === 'Past';
-            else if (statusTab === 'Bookmarked') matchesStatus = isBookmarked;
-
-            return matchesSearch && matchesPlatform && matchesDate && matchesStatus;
+            return matchesSearch && matchesPlatform && matchesDate;
         });
-    }, [contests, searchQuery, selectedPlatform, selectedDate, statusTab, bookmarkedIds]);
+    }, [contests, searchQuery, selectedPlatform, selectedDate]);
 
-    // Metric Summary Counts
-    const counts = useMemo(() => {
-        const live = contests.filter(c => c.status === 'Live').length;
-        const upcoming = contests.filter(c => c.status === 'Upcoming').length;
-        const bookmarked = bookmarkedIds.length;
-        return { total: contests.length, live, upcoming, bookmarked };
-    }, [contests, bookmarkedIds]);
+    // Group upcoming contests by Date for the Left Sidebar Stream (matching screenshot)
+    const groupedUpcomingContests = useMemo(() => {
+        const sorted = [...filteredContests].sort((a, b) => {
+            const dA = a.startDate ? new Date(a.startDate).getTime() : 0;
+            const dB = b.startDate ? new Date(b.startDate).getTime() : 0;
+            return dA - dB;
+        });
 
-    const platformsList = ['All', 'LeetCode', 'CodeChef', 'Codeforces', 'AtCoder', 'HackerRank', 'GeeksforGeeks', 'Custom'];
+        const groups = {};
+        sorted.forEach(contest => {
+            const dateKey = contest.startDate || 'Upcoming';
+            if (!groups[dateKey]) groups[dateKey] = [];
+            groups[dateKey].push(contest);
+        });
 
-    // Google Calendar URL helper
-    const getGoogleCalendarUrl = (contest) => {
-        try {
-            const title = encodeURIComponent(contest.title || 'Coding Contest');
-            const details = encodeURIComponent(
-                `${contest.description || 'Competitive Programming Contest'}\n\nPlatform: ${contest.platform}\nDirect Link: ${contest.link}`
-            );
+        return groups;
+    }, [filteredContests]);
 
-            let startIso = '';
-            let endIso = '';
-
-            if (contest.startDate) {
-                const timeStr = contest.startTime || '18:00';
-                const startDt = new Date(`${contest.startDate}T${timeStr}:00`);
-                if (!isNaN(startDt.getTime())) {
-                    startIso = startDt.toISOString().replace(/-|:|\.\d\d\d/g, "");
-                    const endDt = new Date(startDt.getTime() + 2 * 60 * 60 * 1000);
-                    endIso = endDt.toISOString().replace(/-|:|\.\d\d\d/g, "");
-                }
-            }
-
-            if (!startIso) {
-                const now = new Date();
-                startIso = now.toISOString().replace(/-|:|\.\d\d\d/g, "");
-                endIso = new Date(now.getTime() + 7200000).toISOString().replace(/-|:|\.\d\d\d/g, "");
-            }
-
-            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startIso}/${endIso}&details=${details}&location=${encodeURIComponent(contest.platform || 'Online')}`;
-        } catch (e) {
-            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(contest.title || 'Coding Contest')}`;
-        }
-    };
-
-    // Calendar logic
+    // Calendar Grid Days Calculation
     const monthStart = startOfMonth(calendarMonth);
     const monthEnd = endOfMonth(calendarMonth);
     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    const startDayOfWeek = monthStart.getDay();
+    const startDayOfWeek = monthStart.getDay(); // 0 = Sun
     const emptyPaddingDays = Array.from({ length: startDayOfWeek });
+
+    const platformsList = ['All', 'LeetCode', 'CodeChef', 'Codeforces', 'AtCoder', 'HackerRank', 'GeeksforGeeks', 'Custom'];
 
     return (
         <div className="space-y-6 text-slate-100 animate-in fade-in duration-300 pb-12">
@@ -394,637 +484,344 @@ export default function StudentContest() {
 
             {/* Toast Notification Banner */}
             {toastMessage && (
-                <div className="fixed top-20 right-6 z-50 bg-indigo-600 text-white px-4 py-3 rounded-2xl shadow-xl shadow-indigo-600/30 border border-indigo-400/30 flex items-center gap-3 animate-in slide-in-from-top duration-300">
+                <div className="fixed top-20 right-6 z-50 bg-indigo-600 text-white px-4 py-3 rounded-2xl shadow-2xl border border-indigo-400/30 flex items-center gap-3 animate-in slide-in-from-top duration-300">
                     <Sparkles size={18} className="text-yellow-300 animate-spin" />
                     <span className="text-sm font-semibold">{toastMessage}</span>
                 </div>
             )}
 
-            {/* Codolio Banner Header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-indigo-900/60 via-[#161b26] to-[#13151b] rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl">
-                <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute bottom-0 left-1/3 -mb-12 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div className="space-y-2 max-w-2xl">
-                        <div className="flex items-center gap-2.5">
-                            <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold tracking-wide flex items-center gap-1.5">
-                                <Radio size={14} className="text-emerald-400 animate-pulse" />
-                                Codolio Event Tracker
-                            </span>
-                            <span className="text-xs text-slate-400 flex items-center gap-1">
-                                <Globe size={13} className="text-slate-500" /> Aggregated Live Calendar
-                            </span>
-                        </div>
-
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                            Coding Contests & Competitions
-                        </h1>
-                        <p className="text-sm text-slate-400 leading-relaxed">
-                            Stay ahead of scheduled competitive programming contests across LeetCode, Codeforces, CodeChef, AtCoder, HackerRank, GeeksforGeeks & EduTrack. Set instant reminders & sync with your Google Calendar.
-                        </p>
-                    </div>
-
+            {/* Top Page Header (Matching Screenshot: "Contest Calendar - Explore Coding Contest and never miss it") */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                        Contest Calendar
+                    </h1>
+                    <p className="text-slate-400 text-sm mt-1">Explore Coding Contest and never miss it</p>
+                </div>
+                <div className="flex items-center gap-2">
                     <button
-                        onClick={fetchContests}
+                        onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 rounded-2xl text-xs font-semibold transition-all hover:border-indigo-500/40 active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-2 px-3.5 py-2 bg-[#1a1c23] hover:bg-white/5 border border-white/10 text-slate-300 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-md"
                     >
-                        <RefreshCw size={15} className={`text-indigo-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        {isRefreshing ? 'Syncing Contests...' : 'Refresh Contests'}
+                        <RefreshCw size={14} className={`text-indigo-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        Refresh Schedule
                     </button>
                 </div>
-
-                {/* Metrics Summary Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mt-6 pt-6 border-t border-white/10">
-                    <div className="bg-[#13151b]/80 backdrop-blur-md p-3.5 md:p-4 rounded-2xl border border-white/5 flex items-center gap-3">
-                        <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-                            <Trophy size={20} />
-                        </div>
-                        <div>
-                            <div className="text-xs text-slate-400 font-medium">Total Events</div>
-                            <div className="text-xl md:text-2xl font-bold text-white">{counts.total}</div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#13151b]/80 backdrop-blur-md p-3.5 md:p-4 rounded-2xl border border-white/5 flex items-center gap-3">
-                        <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-                            <Radio size={20} className="animate-pulse" />
-                        </div>
-                        <div>
-                            <div className="text-xs text-slate-400 font-medium">Live Now</div>
-                            <div className="text-xl md:text-2xl font-bold text-emerald-400">{counts.live}</div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#13151b]/80 backdrop-blur-md p-3.5 md:p-4 rounded-2xl border border-white/5 flex items-center gap-3">
-                        <div className="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
-                            <Clock size={20} />
-                        </div>
-                        <div>
-                            <div className="text-xs text-slate-400 font-medium">Upcoming</div>
-                            <div className="text-xl md:text-2xl font-bold text-sky-400">{counts.upcoming}</div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#13151b]/80 backdrop-blur-md p-3.5 md:p-4 rounded-2xl border border-white/5 flex items-center gap-3">
-                        <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-                            <Bell size={20} />
-                        </div>
-                        <div>
-                            <div className="text-xs text-slate-400 font-medium">My Reminders</div>
-                            <div className="text-xl md:text-2xl font-bold text-amber-400">{counts.bookmarked}</div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            {/* Filter and Navigation Control Bar */}
-            <div className="bg-[#161822] p-4 md:p-5 rounded-2xl border border-white/10 space-y-4 shadow-lg">
-                <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-                    
-                    {/* Status Tabs */}
-                    <div className="flex items-center gap-1 bg-[#10121a] p-1 rounded-xl border border-white/5 overflow-x-auto w-full lg:w-auto">
-                        {[
-                            { id: 'All', label: 'All Contests', icon: Trophy, count: counts.total },
-                            { id: 'Live', label: 'Live Now', icon: Radio, count: counts.live, color: 'text-emerald-400' },
-                            { id: 'Upcoming', label: 'Upcoming', icon: Clock, count: counts.upcoming, color: 'text-sky-400' },
-                            { id: 'Past', label: 'Past', icon: CalendarIcon, count: null },
-                            { id: 'Bookmarked', label: 'Saved Reminders', icon: Bell, count: counts.bookmarked, color: 'text-amber-400' }
-                        ].map(tab => {
-                            const TabIcon = tab.icon;
-                            const isActive = statusTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setStatusTab(tab.id)}
-                                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                                        isActive
-                                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                                            : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                                >
-                                    <TabIcon size={14} className={isActive ? 'text-white' : tab.color || 'text-slate-400'} />
-                                    <span>{tab.label}</span>
-                                    {tab.count !== null && tab.count !== undefined && (
-                                        <span className={`px-1.5 py-0.2 rounded-md text-[10px] ${
-                                            isActive ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'
-                                        }`}>
-                                            {tab.count}
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
+            {/* Main Split Layout matching Screenshot */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                    {/* View Switcher & Search Bar */}
-                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <div className="relative flex-1 min-w-[200px] md:w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                {/* LEFT COLUMN: Search, Filters & Upcoming Contests Stream (col-span-4) */}
+                <div className="lg:col-span-4 space-y-6">
+
+                    {/* Search Bar & Filters Button */}
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                             <input
                                 type="text"
-                                placeholder="Search by contest title or platform..."
+                                placeholder="Search contest"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-[#10121a] border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                className="w-full bg-[#161822] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
                             />
                             {searchQuery && (
-                                <button
-                                    onClick={() => setSearchQuery('')}
-                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                                >
+                                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
                                     <X size={14} />
                                 </button>
                             )}
                         </div>
-
-                        {/* Date Picker Input */}
-                        <div className="flex items-center gap-2 bg-[#10121a] px-3 py-1.5 rounded-xl border border-white/10 text-slate-300">
-                            <CalendarIcon size={16} className="text-indigo-400" />
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                style={{ colorScheme: 'dark' }}
-                                className="bg-transparent border-none text-slate-200 text-xs font-mono focus:outline-none cursor-pointer"
-                            />
-                            {selectedDate && (
-                                <button
-                                    onClick={() => setSelectedDate('')}
-                                    className="p-0.5 text-slate-400 hover:text-white hover:bg-white/10 rounded transition-colors"
-                                    title="Clear date filter"
-                                >
-                                    <X size={14} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* View Mode Toggle Buttons */}
-                        <div className="flex items-center bg-[#10121a] p-1 rounded-xl border border-white/10">
-                            <button
-                                onClick={() => setViewMode('grid')}
-                                className={`p-1.5 rounded-lg text-xs transition-all ${
-                                    viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-                                }`}
-                                title="Grid View"
-                            >
-                                <LayoutGrid size={16} />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('list')}
-                                className={`p-1.5 rounded-lg text-xs transition-all ${
-                                    viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-                                }`}
-                                title="List View"
-                            >
-                                <List size={16} />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('calendar')}
-                                className={`p-1.5 rounded-lg text-xs transition-all ${
-                                    viewMode === 'calendar' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
-                                }`}
-                                title="Calendar View"
-                            >
-                                <CalendarDays size={16} />
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setShowFiltersDrawer(!showFiltersDrawer)}
+                            className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                                showFiltersDrawer ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-[#161822] text-slate-400 border-white/10 hover:text-white'
+                            }`}
+                            title="Toggle Filters"
+                        >
+                            <Filter size={16} />
+                        </button>
                     </div>
+
+                    {/* Collapsible Filter Bar */}
+                    {showFiltersDrawer && (
+                        <div className="bg-[#161822] rounded-2xl border border-white/10 p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Filter by Platform</div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {platformsList.map(plt => (
+                                    <button
+                                        key={plt}
+                                        onClick={() => setSelectedPlatform(plt)}
+                                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                                            selectedPlatform === plt 
+                                                ? 'bg-indigo-600 text-white shadow-md' 
+                                                : 'bg-[#10121a] text-slate-400 hover:text-white border border-white/5'
+                                        }`}
+                                    >
+                                        {plt}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Grouped Upcoming Contests Stream */}
+                    <div className="space-y-4 max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
+                        {Object.keys(groupedUpcomingContests).length === 0 ? (
+                            <div className="bg-[#161822] rounded-2xl border border-white/10 p-8 text-center text-slate-400 text-xs">
+                                No contests match your search or filter criteria.
+                            </div>
+                        ) : (
+                            Object.entries(groupedUpcomingContests).map(([dateKey, items]) => {
+                                let displayDate = dateKey;
+                                const todayStr = format(new Date(), 'yyyy-MM-dd');
+                                const tomorrowStr = format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
+
+                                const todayMidnight = new Date();
+                                todayMidnight.setHours(0, 0, 0, 0);
+
+                                let dateKeyObj = new Date();
+                                try {
+                                    if (dateKey !== 'Upcoming') dateKeyObj = parseISO(dateKey);
+                                } catch (e) {}
+                                dateKeyObj.setHours(0, 0, 0, 0);
+
+                                const isGroupPast = dateKeyObj < todayMidnight;
+                                const isGroupToday = isSameDay(dateKeyObj, todayMidnight);
+
+                                if (dateKey === todayStr) displayDate = 'Today';
+                                else if (dateKey === tomorrowStr) displayDate = 'Tomorrow';
+                                else {
+                                    try {
+                                        displayDate = format(parseISO(dateKey), 'dd MMM yyyy');
+                                    } catch (e) {}
+                                }
+
+                                return (
+                                    <div key={dateKey} className="space-y-3">
+                                        <div className="flex items-center justify-between px-1">
+                                            <h3 className={`text-sm font-bold tracking-wide flex items-center gap-2 ${
+                                                isGroupPast ? 'text-slate-500' : isGroupToday ? 'text-sky-400 font-extrabold' : 'text-white'
+                                            }`}>
+                                                {displayDate}
+                                            </h3>
+                                            {isGroupPast && (
+                                                <span className="text-[10px] font-semibold text-slate-500 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md">
+                                                    Completed / Ended
+                                                </span>
+                                            )}
+                                            {isGroupToday && (
+                                                <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/80 border border-amber-500/40 px-2 py-0.5 rounded-md animate-pulse">
+                                                    🔥 LIVE TODAY
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {items.map((contest) => {
+                                                const config = PLATFORM_CONFIG[contest.platform] || PLATFORM_CONFIG.Custom;
+                                                const isSubbed = subscribedIds.includes(contest.id);
+
+                                                return (
+                                                    <div
+                                                        key={contest.id}
+                                                        className={`rounded-2xl p-4 transition-all duration-200 shadow-lg space-y-3 border ${
+                                                            isGroupPast
+                                                                ? 'bg-[#0d0e15]/50 border-slate-800/80 opacity-55 filter grayscale hover:grayscale-0 hover:opacity-85'
+                                                                : isGroupToday
+                                                                ? 'bg-[#161c2d] border-sky-500/50 shadow-sky-500/10'
+                                                                : isSubbed
+                                                                ? 'bg-indigo-950/20 border-indigo-500/50'
+                                                                : 'bg-[#161822] border-white/10 hover:border-indigo-500/40'
+                                                        }`}
+                                                    >
+                                                        {/* Top Row: Time Slot & Status Badge */}
+                                                        <div className="flex justify-between items-center text-xs">
+                                                            <span className={`font-mono font-medium ${isGroupPast ? 'text-slate-600 line-through' : 'text-indigo-400 font-semibold'}`}>
+                                                                {contest.startTime && contest.endTime 
+                                                                    ? `${contest.startTime} - ${contest.endTime}`
+                                                                    : contest.startTime ? contest.startTime : 'TBD'}
+                                                            </span>
+                                                            {isGroupPast && (
+                                                                <span className="text-[10px] font-medium text-slate-500 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md">
+                                                                    Ended ✓
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Title & Platform Logo/Icon */}
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                                                                isGroupPast ? 'bg-slate-900 text-slate-600 border border-slate-800' : config.badgeBg
+                                                            }`}>
+                                                                {config.icon}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <a
+                                                                    href={contest.link || '#'}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={`text-sm font-bold transition-colors line-clamp-2 ${
+                                                                        isGroupPast ? 'text-slate-500 line-through' : 'text-white hover:text-indigo-400'
+                                                                    }`}
+                                                                >
+                                                                    {contest.title}
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
                 </div>
 
-                {/* Platform Filter Pills */}
-                <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-white/5">
-                    <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider mr-1">Platform:</span>
-                    {platformsList.map(platform => {
-                        const isSelected = selectedPlatform === platform;
-                        const pStyle = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.Custom;
-                        return (
+                {/* RIGHT COLUMN: Full Contest Calendar Grid (col-span-8) */}
+                <div className="lg:col-span-8 bg-[#161822] rounded-3xl border border-white/10 p-6 space-y-6 shadow-2xl flex flex-col justify-between">
+
+                    {/* Month Header with < and > Controls */}
+                    <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                        <h2 className="text-xl font-bold text-white">
+                            {format(calendarMonth, 'MMMM yyyy')}
+                        </h2>
+                        <div className="flex items-center gap-2">
                             <button
-                                key={platform}
-                                onClick={() => setSelectedPlatform(platform)}
-                                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                                    isSelected
-                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                                        : 'bg-[#10121a] border border-white/10 text-slate-400 hover:text-white hover:border-white/20'
+                                onClick={handleAllDaysClick}
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                                    !selectedDate
+                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/30'
+                                        : 'bg-[#10121a] border border-white/10 text-slate-400 hover:text-white'
                                 }`}
                             >
-                                {platform !== 'All' && (
-                                    <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : pStyle.accent}`}></span>
-                                )}
-                                {platform}
-                            </button>
-                        );
-                    })}
-
-                    {selectedDate && (
-                        <span className="ml-auto text-xs text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20 flex items-center gap-1.5 whitespace-nowrap">
-                            Date: <strong>{selectedDate}</strong>
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            {/* Calendar Interactive View */}
-            {viewMode === 'calendar' && (
-                <div className="bg-[#161822] rounded-3xl border border-white/10 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center pb-4 border-b border-white/10">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-                                <CalendarDays size={20} />
-                            </div>
-                            <h3 className="text-lg font-bold text-white">
-                                {format(calendarMonth, 'MMMM yyyy')}
-                            </h3>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {selectedDate && (
-                                <button
-                                    onClick={() => setSelectedDate('')}
-                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-slate-300 transition-colors"
-                                >
-                                    Show All Dates
-                                </button>
-                            )}
-                            <button
-                                onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
-                                className="p-2 bg-[#10121a] border border-white/10 rounded-xl text-slate-400 hover:text-white transition-colors"
-                            >
-                                <ChevronLeft size={18} />
+                                All Days
                             </button>
                             <button
-                                onClick={() => setCalendarMonth(new Date())}
-                                className="px-3 py-1.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-xs font-semibold hover:bg-indigo-600 hover:text-white transition-all"
+                                onClick={handleTodayClick}
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                                    selectedDate === format(new Date(), 'yyyy-MM-dd')
+                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/30'
+                                        : 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white'
+                                }`}
                             >
                                 Today
                             </button>
-                            <button
-                                onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
-                                className="p-2 bg-[#10121a] border border-white/10 rounded-xl text-slate-400 hover:text-white transition-colors"
-                            >
-                                <ChevronRight size={18} />
-                            </button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider py-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    {/* Weekday Headers Row */}
+                    <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider py-1">
+                        {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
                             <div key={day}>{day}</div>
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-7 gap-2">
+                    {/* Days Grid matching screenshot pill layout */}
+                    <div className="grid grid-cols-7 gap-2 min-h-[500px]">
+
+                        {/* Empty Padding Cells */}
                         {emptyPaddingDays.map((_, idx) => (
-                            <div key={`empty-${idx}`} className="h-28 rounded-2xl bg-white/[0.01] border border-transparent"></div>
+                            <div key={`empty-${idx}`} className="h-28 rounded-xl bg-white/[0.01]"></div>
                         ))}
 
+                        {/* Month Days */}
                         {daysInMonth.map((dayDate) => {
                             const dateStr = format(dayDate, 'yyyy-MM-dd');
                             const dayContests = contests.filter(c => c.startDate === dateStr);
                             const isSelected = selectedDate === dateStr;
-                            const isToday = isSameDay(dayDate, new Date());
+
+                            const todayMidnight = new Date();
+                            todayMidnight.setHours(0, 0, 0, 0);
+
+                            const cellMidnight = new Date(dayDate);
+                            cellMidnight.setHours(0, 0, 0, 0);
+
+                            const isPastDay = cellMidnight < todayMidnight;
+                            const isTodayDay = isSameDay(dayDate, new Date());
+                            const dayNum = format(dayDate, 'd');
 
                             return (
                                 <div
                                     key={dateStr}
                                     onClick={() => setSelectedDate(isSelected ? '' : dateStr)}
-                                    className={`h-28 p-2.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden ${
+                                    className={`h-28 p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden ${
                                         isSelected
-                                            ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/20 ring-1 ring-indigo-500'
-                                            : isToday
-                                            ? 'bg-purple-900/10 border-purple-500/50'
+                                            ? 'bg-indigo-600/20 border-indigo-500 shadow-xl'
+                                            : isTodayDay
+                                            ? 'bg-[#141f38] border-sky-500/80 shadow-md shadow-sky-500/20 ring-1 ring-sky-400/40'
+                                            : isPastDay
+                                            ? 'bg-[#0c0d14]/40 border-white/[0.02] opacity-45 filter grayscale hover:opacity-75'
                                             : 'bg-[#10121a] border-white/5 hover:border-white/20'
                                     }`}
                                 >
+                                    {/* Top Row: Past/Today Tag + Day Number */}
                                     <div className="flex justify-between items-center">
-                                        <span className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center ${
-                                            isToday
-                                                ? 'bg-purple-600 text-white'
+                                        {isPastDay ? (
+                                            <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tighter">ENDED</span>
+                                        ) : isTodayDay ? (
+                                            <span className="text-[8px] font-black text-sky-400 uppercase tracking-tighter animate-pulse">TODAY</span>
+                                        ) : (
+                                            <span></span>
+                                        )}
+
+                                        <span className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${
+                                            isTodayDay
+                                                ? 'bg-sky-500 text-white font-extrabold shadow-sm ring-1 ring-sky-300'
                                                 : isSelected
                                                 ? 'bg-indigo-600 text-white'
+                                                : isPastDay
+                                                ? 'text-slate-600 line-through font-mono'
                                                 : 'text-slate-400 group-hover:text-white'
                                         }`}>
-                                            {format(dayDate, 'd')}
+                                            {dayNum}
                                         </span>
-                                        {dayContests.length > 0 && (
-                                            <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold rounded-md border border-emerald-500/30">
-                                                {dayContests.length} {dayContests.length === 1 ? 'event' : 'events'}
-                                            </span>
-                                        )}
                                     </div>
 
-                                    <div className="space-y-1 flex-1 overflow-hidden mt-1.5">
-                                        {dayContests.slice(0, 2).map((c, i) => {
-                                            const pStyle = PLATFORM_CONFIG[c.platform] || PLATFORM_CONFIG.Custom;
+                                    {/* Contest Pill Badges inside Day Cell */}
+                                    <div className="space-y-1 flex-1 overflow-hidden mt-1">
+                                        {dayContests.slice(0, 2).map((contest, i) => {
+                                            const config = PLATFORM_CONFIG[contest.platform] || PLATFORM_CONFIG.Custom;
                                             return (
                                                 <div
                                                     key={i}
-                                                    className={`text-[10px] truncate px-1.5 py-0.5 rounded-md font-semibold ${pStyle.badgeBg}`}
-                                                    title={c.title}
+                                                    className={`text-[10px] truncate px-2 py-0.5 rounded-lg font-medium flex items-center gap-1 border transition-transform hover:scale-105 ${
+                                                        isPastDay
+                                                            ? 'bg-slate-900/80 text-slate-500 border-slate-800 line-through opacity-70'
+                                                            : config.badgeBg
+                                                    }`}
+                                                    title={`${contest.title} (${contest.platform})`}
                                                 >
-                                                    {c.platform}: {c.title}
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${isPastDay ? 'bg-slate-700' : config.dotColor}`}></span>
+                                                    <span className="truncate">{contest.title}</span>
                                                 </div>
                                             );
                                         })}
+
                                         {dayContests.length > 2 && (
-                                            <div className="text-[9px] text-slate-400 font-bold">
+                                            <div className="text-[9px] text-slate-500 font-bold px-1 pt-0.5">
                                                 +{dayContests.length - 2} more
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* Multi-day contest indicator */}
+                                    {dayContests.some(c => c.duration && c.duration.includes('Days')) && (
+                                        <div className={`h-1 rounded-full w-full mt-1 ${isPastDay ? 'bg-slate-800' : 'bg-indigo-500 animate-pulse'}`}></div>
+                                    )}
                                 </div>
                             );
                         })}
+
                     </div>
+
                 </div>
-            )}
 
-            {/* Loading State */}
-            {loading ? (
-                <div className="flex flex-col items-center justify-center min-h-[40vh] bg-[#161822] rounded-3xl border border-white/10 p-8 space-y-4">
-                    <div className="relative">
-                        <div className="w-12 h-12 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin"></div>
-                        <Radio size={20} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-400 animate-pulse" />
-                    </div>
-                    <p className="text-sm font-semibold text-slate-400">Loading contests feed...</p>
-                </div>
-            ) : filteredContests.length === 0 ? (
-                /* Empty State */
-                <div className="flex flex-col items-center justify-center min-h-[45vh] text-center p-8 bg-[#161822] rounded-3xl border border-white/10 shadow-xl space-y-4">
-                    <div className="bg-indigo-500/10 p-5 rounded-3xl border border-indigo-500/20 text-indigo-400">
-                        <Trophy size={48} />
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-lg font-bold text-white">No Contests Found</h3>
-                        <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                            No contests match your current search query or filter parameters. Try resetting your search or selecting another platform/tab.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 pt-2">
-                        {statusTab !== 'All' && (
-                            <button
-                                onClick={() => setStatusTab('All')}
-                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all"
-                            >
-                                Switch to All Contests
-                            </button>
-                        )}
-                        {(selectedPlatform !== 'All' || searchQuery || selectedDate) && (
-                            <button
-                                onClick={() => {
-                                    setSelectedPlatform('All');
-                                    setSearchQuery('');
-                                    setSelectedDate('');
-                                }}
-                                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-semibold transition-all border border-white/10"
-                            >
-                                Reset Filters
-                            </button>
-                        )}
-                    </div>
-                </div>
-            ) : viewMode === 'list' ? (
-                /* List View Layout */
-                <div className="bg-[#161822] rounded-3xl border border-white/10 overflow-hidden shadow-xl">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-[#10121a] text-slate-400 font-bold uppercase tracking-wider border-b border-white/10">
-                                <tr>
-                                    <th className="py-4 px-6">Contest & Platform</th>
-                                    <th className="py-4 px-4">Date & Time</th>
-                                    <th className="py-4 px-4">Duration</th>
-                                    <th className="py-4 px-4">Status</th>
-                                    <th className="py-4 px-4 text-center">Coders</th>
-                                    <th className="py-4 px-6 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 text-slate-200">
-                                {filteredContests.map((contest) => {
-                                    const pStyle = PLATFORM_CONFIG[contest.platform] || PLATFORM_CONFIG.Custom;
-                                    const isBookmarked = bookmarkedIds.includes(contest.id || contest._id);
-                                    const isLive = contest.status === 'Live';
-
-                                    return (
-                                        <tr key={contest.id || contest._id} className="hover:bg-white/[0.02] transition-colors group">
-                                            <td className="py-4 px-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${pStyle.badgeBg}`}>
-                                                        {pStyle.logoText}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
-                                                            {contest.title}
-                                                        </div>
-                                                        <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${pStyle.accent}`}></span>
-                                                            {contest.platform}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <td className="py-4 px-4">
-                                                <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-                                                    <CalendarIcon size={14} className="text-indigo-400" />
-                                                    <span>{contest.startDate || 'TBA'}</span>
-                                                </div>
-                                                <div className="text-[10px] text-slate-500 mt-0.5">
-                                                    {contest.startTime || '18:00'} IST
-                                                </div>
-                                            </td>
-
-                                            <td className="py-4 px-4 font-medium text-slate-300">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Clock size={14} className="text-purple-400" />
-                                                    <span>{contest.duration || '2 Hours'}</span>
-                                                </div>
-                                            </td>
-
-                                            <td className="py-4 px-4">
-                                                {isLive ? (
-                                                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold inline-flex items-center gap-1.5">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                                                        LIVE NOW
-                                                    </span>
-                                                ) : contest.status === 'Upcoming' ? (
-                                                    <span className="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[10px] font-bold">
-                                                        UPCOMING
-                                                    </span>
-                                                ) : (
-                                                    <span className="px-2.5 py-1 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30 text-[10px] font-bold">
-                                                        PAST
-                                                    </span>
-                                                )}
-                                            </td>
-
-                                            <td className="py-4 px-4 text-center">
-                                                <span className="text-xs text-amber-400 font-semibold flex items-center justify-center gap-1">
-                                                    <Flame size={13} className="text-orange-400" />
-                                                    {(contest.participants || 1200).toLocaleString()}
-                                                </span>
-                                            </td>
-
-                                            <td className="py-4 px-6 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => toggleBookmark(contest.id || contest._id, contest.title)}
-                                                        className={`p-2 rounded-xl border transition-all ${
-                                                            isBookmarked
-                                                                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                                                                : 'bg-[#10121a] text-slate-400 border-white/10 hover:text-white'
-                                                        }`}
-                                                        title={isBookmarked ? "Remove reminder" : "Set reminder"}
-                                                    >
-                                                        <Bell size={14} className={isBookmarked ? 'fill-amber-400' : ''} />
-                                                    </button>
-
-                                                    <a
-                                                        href={getGoogleCalendarUrl(contest)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-2 rounded-xl bg-[#10121a] border border-white/10 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
-                                                        title="Add to Google Calendar"
-                                                    >
-                                                        <CalendarPlus size={14} />
-                                                    </a>
-
-                                                    {contest.link && (
-                                                        <a
-                                                            href={contest.link.startsWith('http') ? contest.link : `https://${contest.link}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all text-xs inline-flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
-                                                        >
-                                                            Join <ExternalLink size={13} />
-                                                        </a>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            ) : (
-                /* Grid View (Cards Layout) */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredContests.map((contest) => {
-                        const pStyle = PLATFORM_CONFIG[contest.platform] || PLATFORM_CONFIG.Custom;
-                        const isBookmarked = bookmarkedIds.includes(contest.id || contest._id);
-                        const isLive = contest.status === 'Live';
-
-                        return (
-                            <div 
-                                key={contest.id || contest._id} 
-                                className={`bg-gradient-to-b ${pStyle.gradient} to-[#161822] border border-white/10 rounded-3xl p-6 hover:border-indigo-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col justify-between group relative overflow-hidden`}
-                            >
-                                <div className="space-y-4">
-                                    {/* Card Header: Platform Tag & Status */}
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${pStyle.badgeBg}`}>
-                                                {pStyle.logoText}
-                                            </span>
-                                            <span className={`px-2.5 py-1 rounded-xl text-xs font-extrabold border ${pStyle.badgeBg}`}>
-                                                {contest.platform}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            {isLive ? (
-                                                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-500/20">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                                                    LIVE NOW
-                                                </span>
-                                            ) : contest.status === 'Upcoming' ? (
-                                                <span className="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[10px] font-bold">
-                                                    UPCOMING
-                                                </span>
-                                            ) : (
-                                                <span className="px-2.5 py-1 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30 text-[10px] font-bold">
-                                                    PAST
-                                                </span>
-                                            )}
-
-                                            <button
-                                                onClick={() => toggleBookmark(contest.id || contest._id, contest.title)}
-                                                className={`p-1.5 rounded-xl border transition-all ${
-                                                    isBookmarked
-                                                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-md shadow-amber-500/20'
-                                                        : 'bg-white/5 text-slate-400 border-white/10 hover:text-white hover:bg-white/10'
-                                                }`}
-                                                title={isBookmarked ? "Remove reminder" : "Set reminder"}
-                                            >
-                                                <Bell size={15} className={isBookmarked ? 'fill-amber-400' : ''} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Contest Title */}
-                                    <h3 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug">
-                                        {contest.title}
-                                    </h3>
-
-                                    {/* Description */}
-                                    <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed">
-                                        {contest.description || 'Join this competitive programming contest to enhance your problem solving skills.'}
-                                    </p>
-
-                                    {/* Attendees Badge */}
-                                    <div className="flex items-center gap-2 pt-1">
-                                        <span className="text-[11px] text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 flex items-center gap-1.5">
-                                            <Flame size={13} className="text-orange-400" />
-                                            {(contest.participants || 1200).toLocaleString()} coders attending
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Metadata Footer & Actions */}
-                                <div className="space-y-4 pt-5 mt-4 border-t border-white/10">
-                                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-300">
-                                        <div className="flex items-center gap-1.5 bg-white/5 p-2 rounded-xl border border-white/5">
-                                            <CalendarIcon size={14} className="text-indigo-400" />
-                                            <span className="font-medium truncate">{contest.startDate || 'TBA'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 bg-white/5 p-2 rounded-xl border border-white/5 justify-end">
-                                            <Clock size={14} className="text-purple-400" />
-                                            <span className="font-medium truncate">{contest.duration || '2 Hours'}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        {/* Google Calendar Link Button */}
-                                        <a
-                                            href={getGoogleCalendarUrl(contest)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-indigo-400 transition-all"
-                                            title="Add to Google Calendar"
-                                        >
-                                            <CalendarPlus size={16} />
-                                        </a>
-
-                                        {/* Direct Contest Link */}
-                                        {contest.link && (
-                                            <a
-                                                href={contest.link.startsWith('http') ? contest.link : `https://${contest.link}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all text-xs shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-95"
-                                            >
-                                                Participate Now <ExternalLink size={14} />
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+            </div>
         </div>
     );
 }

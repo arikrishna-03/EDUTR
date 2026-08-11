@@ -23,7 +23,6 @@ const Layout = () => {
   const mentorMenuItems = [
     { icon: Home, label: 'Home', path: '/mentor/home' },
     { icon: LayoutDashboard, label: 'Dashboard', path: '/mentor/dashboard' },
-    { icon: Trophy, label: 'Contest', path: '/mentor/contest' },
     { icon: Users, label: 'Students', path: '/mentor/students' },
     { icon: ClipboardCheck, label: 'Attendance', path: '/mentor/attendance' },
     { icon: Code2, label: 'Hackathon', path: '/mentor/hackathon' },
@@ -33,8 +32,6 @@ const Layout = () => {
     { icon: Home, label: 'Home', path: '/student/home' },
     { icon: LayoutDashboard, label: 'Dashboard', path: '/student/dashboard' },
     { icon: Trophy, label: 'Contest', path: '/student/contest' },
-    { icon: Users, label: 'Students', path: '/student/students' },
-    { icon: ClipboardCheck, label: 'Attendance', path: '/student/attendance' },
     { icon: Code2, label: 'Hackathon', path: '/student/hackathon' },
   ];
 

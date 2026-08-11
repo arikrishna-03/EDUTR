@@ -32,7 +32,7 @@ const App = () => {
         <Route index element={<Navigate to="/mentor/home" replace />} />
         <Route path="home" element={<MentorHome />} />
         <Route path="dashboard" element={<MentorDashboard />} />
-        <Route path="contest" element={<MentorContest />} />
+        <Route path="contest" element={<Navigate to="/mentor/dashboard" replace />} />
         <Route path="students" element={<MentorStudents />} />
         <Route path="student/:studentId" element={<StudentDashboard />} />
         <Route path="attendance" element={<MentorAttendance />} />
@@ -48,8 +48,8 @@ const App = () => {
         <Route path="home" element={<StudentHome />} />
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="contest" element={<StudentContest />} />
-        <Route path="students" element={<div className="p-4 text-white">Student List Coming Soon</div>} />
-        <Route path="attendance" element={<div className="p-4 text-white">Attendance View Coming Soon</div>} />
+        <Route path="students" element={<Navigate to="/student/home" replace />} />
+        <Route path="attendance" element={<Navigate to="/student/home" replace />} />
         <Route path="hackathon" element={<Hackathon />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="settings" element={<StudentSettings />} />

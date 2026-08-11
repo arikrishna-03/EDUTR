@@ -20,7 +20,6 @@ export default function Sidebar() {
   const mentorItems = [
     { path: '/mentor/home', label: 'Home', icon: Home },
     { path: '/mentor/dashboard', label: 'Dashboard', icon: LayoutGrid },
-    { path: '/mentor/contest', label: 'Contest', icon: Trophy },
     { path: '/mentor/students', label: 'Students', icon: Users },
     { path: '/mentor/attendance', label: 'Attendance', icon: ClipboardCheck },
     { path: '/mentor/hackathon', label: 'Hackathon', icon: Code },
@@ -30,8 +29,6 @@ export default function Sidebar() {
     { path: '/student/home', label: 'Home', icon: Home },
     { path: '/student/dashboard', label: 'Dashboard', icon: LayoutGrid }, // Analytics
     { path: '/student/contest', label: 'Contest', icon: Trophy },
-    { path: '/student/students', label: 'Students', icon: Users },
-    { path: '/student/attendance', label: 'Attendance', icon: ClipboardCheck },
     { path: '/student/hackathon', label: 'Hackathon', icon: Code },
   ];
 
